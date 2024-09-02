@@ -4,7 +4,7 @@ FROM node:20.12.2-alpine
 WORKDIR /
 
 # Copy necessary files
-COPY package*.json index.mjs entrypoint.sh /
+COPY package*.json index.mjs /
 
 # Install pnpm and dependencies
 RUN npm install -g pnpm && pnpm install
