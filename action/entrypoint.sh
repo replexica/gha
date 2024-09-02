@@ -7,4 +7,4 @@ set -e
 set -x
 
 # Start the Node.js application
-exec node index.mjs
+exec node /index.mjs
