@@ -1,0 +1,8 @@
+{
+  "scripts": {
+    "start": "node index.mjs"
+  },
+  "dependencies": {
+    "octokit": "^4.0.2"
+  }
+}
