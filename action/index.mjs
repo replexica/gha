@@ -1,4 +1,4 @@
-import { App } from "octokit";
+import { Octokit } from "octokit";
 
 console.log(process.env);
 
