@@ -13,7 +13,7 @@ COPY package.json pnpm-lock.yaml ./
 RUN pnpm install
 
 # Copy the rest of the application code
-COPY src/ .
+COPY index.mjs ./
 
 # Command to run the application
-CMD ["node", "src/index.mjs"]
+CMD ["node", "index.mjs"]
