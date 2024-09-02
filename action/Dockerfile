@@ -1,19 +1,16 @@
-FROM node:20.12.2-alpine
+FROM node:14
 
-# Install pnpm
-RUN npm install -g pnpm
-
-# Set the working directory
+# Create and change to the app directory
 WORKDIR /usr/src/app
 
-# Copy package.json and pnpm-lock.yaml
-COPY package.json pnpm-lock.yaml ./
+# Copy package.json and package-lock.json
+COPY package*.json ./
 
-# Install dependencies using pnpm
-RUN pnpm install
+# Install dependencies
+RUN npm install
 
 # Copy the rest of the application code
-COPY index.mjs ./
+COPY . .
 
-# Command to run the application
-CMD ["node", "index.mjs"]
+# Run the entrypoint script
+ENTRYPOINT ["./entrypoint.sh"]
