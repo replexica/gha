@@ -1,7 +1,10 @@
-#!/bin/sh -l
+#!/bin/sh
 
-# Install dependencies
-npm install
+# Exit immediately if a command exits with a non-zero status
+set -e
 
-# Execute the main script
-node index.mjs
+# Print all executed commands to the terminal
+set -x
+
+# Start the Node.js application
+exec node index.mjs
