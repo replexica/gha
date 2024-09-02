@@ -9,6 +9,5 @@ COPY package*.json index.mjs entrypoint.sh /
 # Install pnpm and dependencies
 RUN npm install -g pnpm && pnpm install
 
-# Make entrypoint.sh executable and set as entrypoint
-RUN chmod +x entrypoint.sh
-ENTRYPOINT ["/entrypoint.sh"]
+# Run the Node.js application
+ENTRYPOINT ["node", "/index.mjs"]
