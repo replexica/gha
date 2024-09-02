@@ -16,8 +16,4 @@ RUN pnpm install
 COPY src/ .
 
 # Command to run the application
-CMD ["pnpm", "start"]
-
-
-
-
+CMD ["node", "src/index.mjs"]
