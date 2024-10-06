@@ -1,61 +1,66 @@
-import { Octokit } from "octokit";
-import { simpleGit } from 'simple-git';
+import loadConfig from './instances/config.mjs';
+// Uses SimpleGit
+import loadGit from './instances/git.mjs';
+// Uses GitHub's official Octokit
+import loadOctokit from './instances/octokit.mjs';
 
-import env from './env.js';
-import doStuff from "./do-stuff.js";
+const config = await loadConfig();
+const git = await loadGit();
+const octokit = await loadOctokit();
 
-const octokit = new Octokit({ auth: env.GH_TOKEN });
+// Run
 
-const git = simpleGit({
-  config: {
-    user: {
-      name: 'Replexica',
-      email: 'support@replexica.com'
-    },
-    safeDirectory: process.cwd(),
-  }
-});
+if (config.pullRequest) {
+  const currentBranch = await detectCurrentBranch();
+  await switchToTranslationsBranch(currentBranch);
+
+  await produceTranslations();
+
+  // await stashUnstagedChanges();
+  // await syncTranslationsBranch();
+  // await rebaseTranslationsBranch();
+  // await unstashUnstagedChanges();
+
+  await commitChanges();
+  await pushChanges();
+
+  await ensureTranslationsPullRequest();
+} else {
+  await produceTranslations();
+  await commitChanges();
+  await pushChanges();
+}
+
+const getTranslationsBranchName = (currentBranch) => `replexica/${currentBranch}`;
+
+async function detectCurrentBranch() {
+  return 'main';
+}
+
+async function switchToTranslationsBranch(currentBranch) {
+  const translationsBranch = getTranslationsBranchName(currentBranch);
+  // check if translations branch exists
+  octokit.request('')
+}
+
+async function produceTranslations() {
+  // for now, just create a new entry in the data.json file, where key is the iso timestamp, and value is an empty object
+  // merge that into the existing data.json file, if it exists
+
+  const dataFileExists = await fs.existsSync('data.json');
+  const dataContent = dataFileExists ? await fs.readFileSync('data.json', 'utf8') : '{}';
+  const data = JSON.parse(dataContent);
+
+  const timestamp = new Date().toISOString();
+  data[timestamp] = {};
+
+  await fs.writeFileSync('data.json', JSON.stringify(data, null, 2));
+}
 
 async function commitChanges() {
-  await git.add('.');
-  await git.commit(env.REPLEXICA_COMMIT_MESSAGE);
+  await git.commit('feat: update translations');
 }
 
-export async function getCurrentBranch() {
-  let branchName = "";
-
-  if (env.GITHUB_HEAD_REF) {
-    // Pull request
-    branchName = env.GITHUB_HEAD_REF;
-  } else if (env.GITHUB_REF_NAME) {
-    // Push or workflow_dispatch
-    if (/^refs\/tags\//.test(env.GITHUB_REF)) {
-      // It's a tag, return the default branch
-      const response = await octokit.request('GET /repos/{owner}/{repo}', {
-        owner: env.GITHUB_REPOSITORY_OWNER,
-        repo: env.GITHUB_REPOSITORY
-      });
-      branchName = response.data.default_branch;
-    } else {
-      branchName = env.GITHUB_REF_NAME;
-    }
-  } else if (env.GITHUB_REF) {
-    // Fallback for other cases
-    branchName = env.GITHUB_REF.replace(/^refs\/[^/]*\//, '');
-  } else {
-    throw new Error('Unable to determine the current branch name. For assistance, send our CTO an email to max@replexica.com.');
-  }
-
-  return branchName;
+async function pushChanges() {
+  await git.push();
 }
-
-
-// if (!env.REPLEXICA_PULL_REQUEST) {
-//   await doStuff();
-//   await commitChanges();
-//   await git.push();
-// } else {
-
-// }
-
-// TODO
