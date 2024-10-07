@@ -1,0 +1,28 @@
+name: PR Update
+
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened, labeled]
+    branches:
+      - main
+      - gh-actions-test-branch
+  workflow_dispatch:
+
+permissions:
+  issues: write
+  pull-requests: write
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Echo PR info
+        run: |
+          echo "PR title: ${{ github.event.pull_request.title }}"
+          echo "PR body: ${{ github.event.pull_request.body }}"
+          echo "PR head branch: ${{ github.event.pull_request.head.branch }}"
+          echo "PR base branch: ${{ github.event.pull_request.base.branch }}"
