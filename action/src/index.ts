@@ -61,7 +61,7 @@ import doStuff from './do-stuff.js';
         ora.succeed(`Branch ${prBranchName} checked out`);
 
         ora.start('Merge latest changes from current branch');
-        execSync(`git merge origin/${config.currentBranchName}`);
+        execSync(`git merge origin/${config.currentBranchName} --allow-unrelated-histories`);
         ora.succeed('Merged latest changes from current branch');
       }
 
