@@ -10,99 +10,61 @@ import doStuff from './do-stuff.js';
 
 (async function main() {
   const ora = Ora();
+  const config = await loadConfig();
+  const octokit = await loadOctokit();
 
-  try {
-    const config = await loadConfig();
-    const octokit = await loadOctokit();
+  // Configure git
+  ora.start('Configuring git');
+  execSync('git config --global user.name "Replexica"');
+  execSync('git config --global user.email "support@replexica.com"');
+  execSync(`git config --global safe.directory ${process.cwd()}`);
+  ora.succeed('Git configured');
 
-    // Configure git
-    ora.start('Configuring git');
-    execSync('git config --global user.name "Replexica"');
-    execSync('git config --global user.email "support@replexica.com"');
-    execSync(`git config --global safe.directory ${process.cwd()}`);
-    ora.succeed('Git configured');
+  // Do stuff
+  ora.start('Doing stuff');
+  await doStuff();
+  ora.succeed('Done doing stuff');
 
-    ora.start('Fetching git repository tree structure from remote');
-    execSync('git fetch --all', { stdio: 'inherit' });
-    ora.succeed('Fetched git repository tree structure from remote');
+  if (!config.isPullRequestMode) {
+    ora.info('Pull request mode is disabled');
 
-    if (!config.isPullRequestMode) {
-      ora.info('Pull request mode is disabled');
+    ora.start('Committing changes');
+    execSync('git add .');
+    execSync(`git commit -m "${config.commitMessage}"`);
+    ora.succeed('Changes committed');
 
-      // Do stuff
-      ora.start('Doing stuff');
-      await doStuff();
-      ora.succeed('Done doing stuff');
+    ora.start('Pushing changes to remote');
+    execSync('git push');
+    ora.succeed('Changes pushed to remote');
+  } else {
+    ora.info('Pull request mode is enabled');
 
-      ora.start('Committing changes');
-      execSync('git add .');
-      execSync(`git commit -m "${config.commitMessage}"`);
-      ora.succeed('Changes committed');
+    ora.info('Calculating automated branch name');
+    const prBranchName = `replexica/${config.currentBranchName}`;
+    ora.succeed(`Automated branch name calculated: ${prBranchName}`);
 
-      ora.start('Pushing changes to remote');
-      execSync('git push');
-      ora.succeed('Changes pushed to remote');
-    } else {
-      ora.info('Pull request mode is enabled');
-      // Calculate automated branch name
-      ora.info('Calculating automated branch name');
-      const prBranchName = `replexica/${config.currentBranchName}`;
-      ora.succeed(`Automated branch name calculated: ${prBranchName}`);
+    ora.start(`Checking out branch ${prBranchName}`);
+    execSync(`git checkout -b ${prBranchName}`);
+    ora.succeed(`Checked out branch ${prBranchName}`);
 
-      // Check if branch exists
-      ora.start(`Checking if branch ${prBranchName} exists`);
-      const branchExists = await octokit.rest.repos.getBranch({
-        owner: config.repositoryOwner,
-        repo: config.repositoryName,
-        branch: prBranchName,
-      })
-        .then(({ data }) => data.commit !== null)
-        .catch(() => false);
-      ora.succeed(`Branch ${prBranchName} exists: ${branchExists}`);
+    ora.start('Committing changes');
+    execSync('git add .');
+    execSync(`git commit -m "${config.commitMessage}"`);
+    ora.succeed('Changes committed');
 
-      if (branchExists) {
-        ora.info(`Branch ${prBranchName} exists, checking out`);
-        execSync(`git fetch origin ${prBranchName}`);
-        execSync(`git checkout ${prBranchName}`);
-        ora.succeed(`Branch ${prBranchName} checked out`);
+    ora.start('Pushing changes to remote');
+    execSync(`git push --force --set-upstream origin "${prBranchName}"`);
+    ora.succeed('Changes pushed to remote');
 
-        ora.start('Rebasing latest changes from current branch');
-        execSync(`git fetch origin ${config.currentBranchName}`);
-        execSync(`git rebase ${config.currentBranchName} ${prBranchName} --ff`, { stdio: 'inherit' });
-        ora.succeed('Rebased latest changes from current branch');
-      } else {
-        ora.info(`Branch ${prBranchName} does not exist, creating`);
-        execSync(`git checkout -b ${prBranchName}`);
-        ora.succeed(`Branch ${prBranchName} created`);
-      }
-
-      // Do stuff
-      ora.start('Doing stuff');
-      await doStuff();
-      ora.succeed('Done doing stuff');
-
-      ora.start('Committing changes');
-      execSync('git add .');
-      execSync(`git commit -m "${config.commitMessage}"`);
-      ora.succeed('Changes committed');
-
-      ora.start('Pushing changes to remote');
-      execSync(`git push --set-upstream origin "${prBranchName}"`);
-      ora.succeed('Changes pushed to remote');
-
-      // Create PR
-      ora.start('Creating PR');
-      await octokit.rest.pulls.create({
-        owner: config.repositoryOwner,
-        repo: config.repositoryName,
-        head: prBranchName,
-        base: config.currentBranchName,
-        title: config.pullRequestTitle,
-      });
-      ora.succeed('PR created');
-    }
-  } catch (error: any) {
-    ora.fail(error);
-    process.exit(1);
+    // Create PR
+    ora.start('Creating PR');
+    await octokit.rest.pulls.create({
+      owner: config.repositoryOwner,
+      repo: config.repositoryName,
+      head: prBranchName,
+      base: config.currentBranchName,
+      title: config.pullRequestTitle,
+    });
+    ora.succeed('PR created');
   }
 })();
