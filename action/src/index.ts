@@ -25,21 +25,9 @@ import doStuff from './do-stuff.js';
   } else {
     // Calculate automated branch name
     const prBranchName = `replexica/${config.currentBranchName}`;
-    const branchExists = await octokit.rest.repos.getBranch({
-      owner: config.repositoryOwner,
-      repo: config.repositoryName,
-      branch: prBranchName,
-    }).then(({ status }) => status === 200);
 
-    if (branchExists) {
-      execSync(`git checkout ${prBranchName}`);
-      execSync('git pull');
-      // merge current branch into pr branch
-      execSync(`git merge ${config.currentBranchName}`);
-    } else {
-      // Create branch
-      execSync(`git checkout -b ${prBranchName}`);
-    }
+    execSync(`git fetch origin ${prBranchName} && git checkout ${prBranchName} || git checkout -b ${prBranchName}`);
+    execSync(`git merge ${config.currentBranchName}`);
 
     // Do stuff
     await doStuff();
