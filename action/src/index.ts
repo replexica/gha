@@ -65,6 +65,7 @@ import loadOctokit from './instances/octokit.js';
     // If the branch exists, check it out
     if (branchExists) {
       ora.start(`Checking out branch ${prBranchName}`);
+      execSync(`git fetch origin ${prBranchName}`);
       execSync(`git checkout ${prBranchName}`);
       ora.succeed(`Checked out branch ${prBranchName}`);
     } else {
