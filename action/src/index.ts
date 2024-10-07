@@ -128,12 +128,19 @@ import loadOctokit from './instances/octokit.js';
     // TODO: Run workflow again
     const labelName = 'i18n';
     // Remove label if it exists
-    await octokit.rest.issues.removeLabel({
+    const labelExists = await octokit.rest.issues.listLabelsOnIssue({
       owner: config.repositoryOwner,
       repo: config.repositoryName,
       issue_number: pullRequestId,
-      name: labelName,
-    });
+    }).then(({ data }) => data.some((label) => label.name === labelName));
+    if (labelExists) {
+      await octokit.rest.issues.removeLabel({
+        owner: config.repositoryOwner,
+        repo: config.repositoryName,
+        issue_number: pullRequestId,
+        name: labelName,
+      });
+    }
     // Add label
     await octokit.rest.issues.addLabels({
       owner: config.repositoryOwner,
