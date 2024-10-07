@@ -74,7 +74,7 @@ import doStuff from './do-stuff.js';
 
       // Do stuff
       ora.start('Popping changes from git stash');
-      execSync(`git stash apply`);
+      execSync(`git stash apply`, { stdio: 'inherit' });
       ora.succeed('Changes popped from git stash');
 
       ora.start('Committing changes');
@@ -98,6 +98,6 @@ import doStuff from './do-stuff.js';
       ora.succeed('PR created');
     }
   } catch (error: any) {
-    ora.fail(JSON.stringify(error, null, 2));
+    ora.fail(error);
   }
 })();
