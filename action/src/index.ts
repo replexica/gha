@@ -60,10 +60,10 @@ import doStuff from './do-stuff.js';
         execSync(`git checkout ${prBranchName}`);
         ora.succeed(`Branch ${prBranchName} checked out`);
 
-        ora.start('Merge latest changes from current branch');
+        ora.start('Rebasing latest changes from current branch');
         execSync(`git fetch origin ${config.currentBranchName}`);
-        execSync(`git merge ${config.currentBranchName}`, { stdio: 'inherit' });
-        ora.succeed('Merged latest changes from current branch');
+        execSync(`git rebase ${config.currentBranchName} ${prBranchName}`, { stdio: 'inherit' });
+        ora.succeed('Rebased latest changes from current branch');
       }
 
       // Do stuff
