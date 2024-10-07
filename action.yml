@@ -10,7 +10,7 @@ inputs:
   pull-request:
     description: 'Create a pull request with the changes'
     required: false
-    default: 'false'
+    default: false
 
 runs:
   using: 'docker'
