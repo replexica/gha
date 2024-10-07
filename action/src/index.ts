@@ -24,6 +24,13 @@ import loadOctokit from './instances/octokit.js';
   execSync('npx replexica@latest i18n', { stdio: 'inherit' });
   ora.succeed('Done doing stuff');
 
+  // Check if there are any changes made to the files
+  const changes = execSync('git status --porcelain').toString();
+  if (changes.length === 0) {
+    ora.info('Translations are up to date!');
+    return;
+  }
+
   if (!config.isPullRequestMode) {
     ora.info('Pull request mode is disabled');
 

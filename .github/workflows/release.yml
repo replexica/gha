@@ -20,9 +20,9 @@ jobs:
       - name: Run Replexica Action
         uses: ./
         with:
-          api-key: ${{ secrets.REPLEXICA_API_KEY }}
           commit-message: 'feat: update some data'
           pull-request: true
           pull-request-title: 'feat: pr with some data updates'
         env:
           GH_TOKEN: ${{ github.token }}
+          REPLEXICA_API_KEY: ${{ secrets.REPLEXICA_API_KEY }}
