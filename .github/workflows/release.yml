@@ -21,5 +21,7 @@ jobs:
         uses: ./
         with:
           commit-message: 'feat: update some data'
+          pull-request: true
+          pull-request-title: 'feat: pr with some data updates'
         env:
           GH_TOKEN: ${{ github.token }}

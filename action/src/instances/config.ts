@@ -5,6 +5,11 @@ export default async function loadConfig() {
 
   return {
     isPullRequestMode: env.REPLEXICA_PULL_REQUEST,
-    commitMessageText: env.REPLEXICA_COMMIT_MESSAGE,
+    commitMessage: env.REPLEXICA_COMMIT_MESSAGE,
+    pullRequestTitle: env.REPLEXICA_PULL_REQUEST_TITLE,
+    currentBranchName: env.GITHUB_REF_NAME,
+    repositoryOwner: env.GITHUB_REPOSITORY_OWNER,
+    repositoryFullName: env.GITHUB_REPOSITORY,
+    repositoryName: env.GITHUB_REPOSITORY.split('/')[1],
   };
 }

@@ -18,8 +18,27 @@ import doStuff from './do-stuff.js';
   execSync('git config --global user.email "support@replexica.com"');
   execSync(`git config --global safe.directory ${process.cwd()}`);
 
-  execSync('git add .');
-  execSync(`git commit -m "${config.commitMessageText}"`);
-  execSync('git push');
+  if (!config.isPullRequestMode) {
+    execSync('git add .');
+    execSync(`git commit -m "${config.commitMessage}"`);
+    execSync('git push');
+  } else {
+    // Calculate automated branch name
+    const prBranchName = `replexica/${config.currentBranchName}`;
 
+    // Create branch
+    execSync(`git checkout -b ${prBranchName}`);
+    execSync('git add .');
+    execSync(`git commit -m "${config.commitMessage}"`);
+    execSync('git push --set-upstream origin ${prBranchName}');
+
+    // Create PR
+    await octokit.rest.pulls.create({
+      owner: config.repositoryOwner,
+      repo: config.repositoryName,
+      head: prBranchName,
+      base: config.currentBranchName,
+      title: config.pullRequestTitle,
+    });
+  }
 })();
