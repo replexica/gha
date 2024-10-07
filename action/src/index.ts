@@ -21,8 +21,7 @@ import loadOctokit from './instances/octokit.js';
 
   // Do stuff
   ora.start('Doing stuff');
-  execSync(`echo REPLEXICA_API_KEY=${config.replexicaApiKey} >> .env`);
-  execSync('npx replexica@latest i18n', { stdio: 'inherit' });
+  execSync(`npx replexica@latest i18n --api-key ${config.replexicaApiKey}`, { stdio: 'inherit' });
   ora.succeed('Done doing stuff');
 
   // Check if there are any changes made to the files
