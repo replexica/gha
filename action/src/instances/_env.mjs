@@ -4,7 +4,7 @@ export default async function loadEnv() {
   return Z.object({
     // Replexica
     REPLEXICA_API_KEY: Z.string(),
-    REPLEXICA_PULL_REQUEST: Z.boolean().optional().default(false),
+    REPLEXICA_PULL_REQUEST: Z.preprocess(Boolean, Z.boolean()),
     // Github
     GITHUB_REPOSITORY: Z.string(),
     GITHUB_REPOSITORY_OWNER: Z.string(),
