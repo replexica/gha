@@ -11,7 +11,10 @@ export default async () => {
   }
 
   const currentTimestamp = new Date().toISOString();
-  data[currentTimestamp] = true;
+  data = {
+    [currentTimestamp]: true,
+    ...data,
+  };
 
   fs.writeFileSync(filePath, JSON.stringify(data, null, 2), 'utf-8');
 }
