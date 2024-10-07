@@ -14,6 +14,5 @@ export default async function loadEnv() {
     // Custom env
     GH_TOKEN: Z.string(),
   })
-    .passthrough()
     .parse(process.env);
 }
