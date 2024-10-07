@@ -67,6 +67,7 @@ import doStuff from './do-stuff.js';
 
       if (branchExists) {
         ora.info(`Branch ${prBranchName} exists, checking out`);
+        execSync(`git fetch origin ${prBranchName}`);
         execSync(`git checkout ${prBranchName}`);
         ora.succeed(`Branch ${prBranchName} checked out`);
       }
