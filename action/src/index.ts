@@ -113,8 +113,7 @@ import loadOctokit from './instances/octokit.js';
     ora.succeed(`PR ${prExists ? 'exists' : 'does not exist'}`);
 
     if (prExists) {
-      ora.info('PR already exists. Exiting.');
-      return;
+      ora.info('PR already exists. Skipping PR creation.');
     } else {
       ora.start('Creating PR');
       await octokit.rest.pulls.create({
