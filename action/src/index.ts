@@ -19,20 +19,20 @@ import loadOctokit from './instances/octokit.js';
   execSync(`git config --global safe.directory ${process.cwd()}`);
   ora.succeed('Git configured');
 
-  // Do stuff
-  ora.start('Doing stuff');
-  execSync(`npx replexica@latest i18n --api-key ${config.replexicaApiKey}`, { stdio: 'inherit' });
-  ora.succeed('Done doing stuff');
-
-  // Check if there are any changes made to the files
-  const changes = execSync('git status --porcelain').toString();
-  if (changes.length === 0) {
-    ora.info('Translations are up to date!');
-    return;
-  }
-
   if (!config.isPullRequestMode) {
     ora.info('Pull request mode is disabled');
+
+    // Do stuff
+    ora.start('Doing stuff');
+    execSync(`npx replexica@latest i18n --api-key ${config.replexicaApiKey}`, { stdio: 'inherit' });
+    ora.succeed('Done doing stuff');
+
+    // Check if there are any changes made to the files
+    const changes = execSync('git status --porcelain').toString();
+    if (changes.length === 0) {
+      ora.info('Translations are up to date!');
+      return;
+    }
 
     ora.start('Committing changes');
     execSync('git add .');
@@ -49,9 +49,47 @@ import loadOctokit from './instances/octokit.js';
     const prBranchName = `replexica/${config.currentBranchName}`;
     ora.succeed(`Automated branch name calculated: ${prBranchName}`);
 
-    ora.start(`Checking out branch ${prBranchName}`);
-    execSync(`git checkout -b ${prBranchName}`);
-    ora.succeed(`Checked out branch ${prBranchName}`);
+    // TODO: Replace rebase with branch checkout + selective files checkout
+    // To do that, we need `replexica@latest show files` to output the files that are under Replexica's management
+    // and then we can use `git add` to add them.
+
+    // Check if the branch already exists
+    const branchExists = await octokit.rest.repos.getBranch({
+      owner: config.repositoryOwner,
+      repo: config.repositoryName,
+      branch: prBranchName,
+    })
+      .then(({ data }) => data !== null)
+      .catch(() => false);
+
+    // If the branch exists, check it out
+    if (branchExists) {
+      ora.start(`Checking out branch ${prBranchName}`);
+      execSync(`git checkout ${prBranchName}`);
+      ora.succeed(`Checked out branch ${prBranchName}`);
+    } else {
+      // If the branch does not exist, create it and set upstream for it
+      ora.start(`Creating branch ${prBranchName}`);
+      execSync(`git checkout -b ${prBranchName}`);
+      ora.succeed(`Created branch ${prBranchName}`);
+    }
+
+    // Call `replexica@latest show files` and combine the output with selective checkout using xargs
+    ora.start(`Pulling files Replexica is managing from the ${config.currentBranchName} branch`);
+    execSync(`npx replexica@latest show files | xargs git checkout ${config.currentBranchName} -- `, { stdio: 'inherit' });
+    ora.succeed('Files pulled');
+
+    // Do stuff
+    ora.start('Doing stuff');
+    execSync(`npx replexica@latest i18n --api-key ${config.replexicaApiKey}`, { stdio: 'inherit' });
+    ora.succeed('Done doing stuff');
+
+    // Check if there are any changes made to the files
+    const changes = execSync('git status --porcelain').toString();
+    if (changes.length === 0) {
+      ora.info('Translations are up to date!');
+      return;
+    }
 
     ora.start('Committing changes');
     execSync('git add .');
@@ -59,7 +97,7 @@ import loadOctokit from './instances/octokit.js';
     ora.succeed('Changes committed');
 
     ora.start('Pushing changes to remote');
-    execSync(`git push --force --set-upstream origin "${prBranchName}"`);
+    execSync(`git push --set-upstream origin "${prBranchName}"`);
     ora.succeed('Changes pushed to remote');
 
     // Check if PR already exists
