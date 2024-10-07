@@ -38,7 +38,7 @@ import doStuff from './do-stuff.js';
       // Do stuff
 
       ora.start('Popping changes from git stash');
-      execSync(`git stash pop`);
+      execSync(`git stash apply`);
       ora.succeed('Changes popped from git stash');
 
       ora.start('Committing changes');
@@ -74,7 +74,7 @@ import doStuff from './do-stuff.js';
 
       // Do stuff
       ora.start('Popping changes from git stash');
-      execSync(`git stash pop`);
+      execSync(`git stash apply`);
       ora.succeed('Changes popped from git stash');
 
       ora.start('Committing changes');
