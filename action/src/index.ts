@@ -45,4 +45,3 @@ import doStuff from './do-stuff.js';
     });
   }
 })();
-
