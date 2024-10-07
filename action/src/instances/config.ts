@@ -4,6 +4,7 @@ export default async function loadConfig() {
   const env = await loadEnv();
 
   return {
+    replexicaApiKey: env.REPLEXICA_API_KEY,
     isPullRequestMode: env.REPLEXICA_PULL_REQUEST,
     commitMessage: env.REPLEXICA_COMMIT_MESSAGE,
     pullRequestTitle: env.REPLEXICA_PULL_REQUEST_TITLE,
