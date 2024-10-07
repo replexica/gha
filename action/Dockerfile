@@ -13,9 +13,7 @@ COPY package*.json /app
 COPY src /app/src
 
 # Install pnpm and dependencies
-RUN npm install -g pnpm && pnpm install
-
-RUN ls -la
+RUN npm install -g pnpm ts-node && pnpm install
 
 # Run the Node.js application
-ENTRYPOINT ["pnpm", "run", "start"]
+ENTRYPOINT ["ts-node", "./src/index.ts"]
