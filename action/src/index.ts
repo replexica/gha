@@ -55,7 +55,9 @@ import doStuff from './do-stuff.js';
         owner: config.repositoryOwner,
         repo: config.repositoryName,
         branch: prBranchName,
-      }).then(({ data }) => data.commit !== null);
+      })
+        .then(({ data }) => data.commit !== null)
+        .catch(() => false);
       ora.succeed(`Branch ${prBranchName} exists: ${branchExists}`);
 
       if (branchExists) {
