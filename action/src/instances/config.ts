@@ -1,4 +1,4 @@
-import loadEnv from './_env';
+import loadEnv from './_env.js';
 
 export default async function loadConfig() {
   const env = await loadEnv();

@@ -1,9 +1,9 @@
 import { execSync } from 'child_process';
 
-import loadConfig from './instances/config';
+import loadConfig from './instances/config.js';
 // Uses GitHub's official Octokit
-import loadOctokit from './instances/octokit';
-import doStuff from './do-stuff';
+import loadOctokit from './instances/octokit.js';
+import doStuff from './do-stuff.js';
 
 // Run
 
