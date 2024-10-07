@@ -68,7 +68,11 @@ import doStuff from './do-stuff.js';
 
         ora.start('Rebasing latest changes from current branch');
         execSync(`git fetch origin ${config.currentBranchName}`);
-        execSync(`git rebase ${config.currentBranchName} ${prBranchName}`, { stdio: 'inherit' });
+        // try to fast forward rebase
+        execSync(
+          `git rebase ${config.currentBranchName} ${prBranchName} --ff-only`,
+          { stdio: 'inherit' },
+        );
         ora.succeed('Rebased latest changes from current branch');
       } else {
         ora.info(`Branch ${prBranchName} does not exist, creating`);
