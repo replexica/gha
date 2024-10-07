@@ -56,15 +56,30 @@ import doStuff from './do-stuff.js';
     execSync(`git push --force --set-upstream origin "${prBranchName}"`);
     ora.succeed('Changes pushed to remote');
 
-    // Create PR
-    ora.start('Creating PR');
-    await octokit.rest.pulls.create({
+    // Check if PR already exists
+    ora.start('Checking if PR already exists');
+    const prExists = await octokit.rest.pulls.list({
       owner: config.repositoryOwner,
       repo: config.repositoryName,
       head: prBranchName,
       base: config.currentBranchName,
-      title: config.pullRequestTitle,
-    });
-    ora.succeed('PR created');
+    })
+      .then(({ data }) => data.length > 0);
+    ora.succeed(`PR ${prExists ? 'exists' : 'does not exist'}`);
+
+    if (prExists) {
+      ora.info('PR already exists. Exiting.');
+      return;
+    } else {
+      ora.start('Creating PR');
+      await octokit.rest.pulls.create({
+        owner: config.repositoryOwner,
+        repo: config.repositoryName,
+        head: prBranchName,
+        base: config.currentBranchName,
+        title: config.pullRequestTitle,
+      });
+      ora.succeed('PR created');
+    }
   }
 })();
