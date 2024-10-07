@@ -27,6 +27,11 @@ import doStuff from './do-stuff.js';
     await doStuff();
     ora.succeed('Done doing stuff');
 
+    // show diff
+    ora.start('Showing diff that will be committed');
+    execSync('git diff', { stdio: 'inherit' });
+    ora.succeed('Diff shown');
+
     // Save changes in git stash
     ora.start('Saving changes in git stash');
     execSync('git add .');
@@ -35,7 +40,6 @@ import doStuff from './do-stuff.js';
 
     if (!config.isPullRequestMode) {
       ora.info('Pull request mode is not enabled, pushing changes to remote');
-      // Do stuff
 
       ora.start('Popping changes from git stash');
       execSync(`git stash apply`);
