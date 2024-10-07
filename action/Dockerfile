@@ -16,4 +16,4 @@ COPY src /src
 RUN npm install -g pnpm && pnpm install
 
 # Run the Node.js application
-ENTRYPOINT ["node", "/src/index.mjs"]
+ENTRYPOINT ["ts-node", "/src/index.ts"]
