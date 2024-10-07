@@ -103,38 +103,43 @@ import loadOctokit from './instances/octokit.js';
 
     // Check if PR already exists
     ora.start('Checking if PR already exists');
-    const prExists = await octokit.rest.pulls.list({
+    let pullRequestId = await octokit.rest.pulls.list({
       owner: config.repositoryOwner,
       repo: config.repositoryName,
       head: prBranchName,
       base: config.currentBranchName,
-    })
-      .then(({ data }) => data.length > 0);
-    ora.succeed(`PR ${prExists ? 'exists' : 'does not exist'}`);
+    }).then(({ data }) => data[0]?.id);
+    ora.succeed(`PR ${pullRequestId ? 'exists' : 'does not exist'}`);
 
-    if (prExists) {
+    if (pullRequestId) {
       ora.info('PR already exists. Skipping PR creation.');
     } else {
       ora.start('Creating PR');
-      await octokit.rest.pulls.create({
+      pullRequestId = await octokit.rest.pulls.create({
         owner: config.repositoryOwner,
         repo: config.repositoryName,
         head: prBranchName,
         base: config.currentBranchName,
         title: config.pullRequestTitle,
-      });
+      }).then(({ data }) => data.id);
       ora.succeed('PR created');
     }
 
-    // Run workflow again
-    ora.start('Running workflow again');
-    const workflowFileName = 'pr-target.yml'; // TODO: Make this dynamic
-    await octokit.rest.actions.createWorkflowDispatch({
+    // TODO: Run workflow again
+    const labelName = 'i18n';
+    // Remove label if it exists
+    await octokit.rest.issues.removeLabel({
       owner: config.repositoryOwner,
       repo: config.repositoryName,
-      workflow_id: workflowFileName,
-      ref: prBranchName,
+      issue_number: pullRequestId,
+      name: labelName,
     });
-    ora.succeed('Workflow run triggered');
+    // Add label
+    await octokit.rest.issues.addLabels({
+      owner: config.repositoryOwner,
+      repo: config.repositoryName,
+      issue_number: pullRequestId,
+      labels: [labelName],
+    });
   }
 })();
