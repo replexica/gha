@@ -4,7 +4,7 @@ import path from 'path';
 export default async () => {
   const filePath = path.join(process.cwd(), 'data.json');
 
-  let data = {};
+  let data: Record<string, boolean> = {};
   if (fs.existsSync(filePath)) {
     const fileContent = fs.readFileSync(filePath, 'utf-8');
     data = JSON.parse(fileContent);
