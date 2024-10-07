@@ -1,6 +1,6 @@
+import { execSync } from 'child_process';
+
 import loadConfig from './instances/config.mjs';
-// Uses SimpleGit
-import loadGit from './instances/git.mjs';
 // Uses GitHub's official Octokit
 import loadOctokit from './instances/octokit.mjs';
 import doStuff from './do-stuff.mjs';
@@ -14,6 +14,10 @@ const octokit = await loadOctokit();
 // Do stuff
 await doStuff();
 // Commit changes
-await git.add('.');
-await git.commit('feat: update data');
-await git.push();
+execSync('git config --global user.name "Replexica"');
+execSync('git config --global user.email "support@replexica.com"');
+execSync(`git config --global safe.directory ${process.cwd()}`);
+
+execSync('git add .');
+execSync('git commit -m "feat: update data"');
+execSync('git push');
