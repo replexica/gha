@@ -22,5 +22,5 @@ execSync('git config --global user.email "support@replexica.com"');
 execSync(`git config --global safe.directory ${process.cwd()}`);
 
 execSync('git add .');
-execSync('git commit -m "feat: update data"');
+execSync(`git commit -m "${env.REPLEXICA_COMMIT_MESSAGE}"`);
 execSync('git push');

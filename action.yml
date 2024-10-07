@@ -10,7 +10,9 @@ inputs:
   pull-request:
     description: 'Create a pull request with the changes'
     required: false
-    default: false
+  commit-message:
+    description: 'Commit message'
+    required: false
 
 runs:
   using: 'docker'
@@ -18,7 +20,7 @@ runs:
   env:
     REPLEXICA_API_KEY: ${{ inputs.api-key }}
     REPLEXICA_PULL_REQUEST: ${{ inputs.pull-request }}
-
+    REPLEXICA_COMMIT_MESSAGE: ${{ inputs.commit-message }}
 branding:
   icon: './content/logo.png'
   color: 'black'

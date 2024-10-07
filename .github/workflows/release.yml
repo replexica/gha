@@ -19,5 +19,7 @@ jobs:
 
       - name: Run Replexica Action
         uses: ./
+        with:
+          commit-message: 'feat: update some data'
         env:
           GH_TOKEN: ${{ github.token }}
