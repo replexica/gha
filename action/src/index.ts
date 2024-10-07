@@ -98,6 +98,6 @@ import doStuff from './do-stuff.js';
       ora.succeed('PR created');
     }
   } catch (error: any) {
-    ora.fail(error.message);
+    ora.fail(JSON.stringify(error, null, 2));
   }
 })();
