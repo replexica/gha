@@ -1,4 +1,7 @@
 {
+  "scripts": {
+    "start": "ts-node src/index.ts"
+  },
   "dependencies": {
     "octokit": "^4.0.2",
     "ts-node": "^10.9.2",
