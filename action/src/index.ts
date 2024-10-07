@@ -126,5 +126,16 @@ import loadOctokit from './instances/octokit.js';
       });
       ora.succeed('PR created');
     }
+
+    // Run workflow again
+    ora.start('Running workflow again');
+    const workflowFileName = 'pr-target.yml'; // TODO: Make this dynamic
+    await octokit.rest.actions.createWorkflowDispatch({
+      owner: config.repositoryOwner,
+      repo: config.repositoryName,
+      workflow_id: workflowFileName,
+      ref: prBranchName,
+    });
+    ora.succeed('Workflow run triggered');
   }
 })();
