@@ -15,8 +15,6 @@ console.log(process.cwd());
 // Do stuff
 await doStuff();
 // Commit changes
-import { execSync } from 'child_process';
-
-execSync('git add .');
-execSync('git commit -m "feat: update data"');
-execSync('git push');
+await git.add('.');
+await git.commit('feat: update data');
+await git.push();
