@@ -22,6 +22,10 @@ import doStuff from './do-stuff.js';
     execSync(`git config --global safe.directory ${process.cwd()}`);
     ora.succeed('Git configured');
 
+    ora.start('Pulling latest changes from remote');
+    execSync('git pull', { stdio: 'inherit' });
+    ora.succeed('Pulled latest changes from remote');
+
     if (!config.isPullRequestMode) {
       ora.info('Pull request mode is disabled');
 
@@ -55,8 +59,6 @@ import doStuff from './do-stuff.js';
       ora.succeed(`Branch ${prBranchName} exists: ${branchExists}`);
 
       if (branchExists) {
-        execSync('git pull', { stdio: 'inherit' });
-
         ora.info(`Branch ${prBranchName} exists, checking out`);
         execSync(`git fetch origin ${prBranchName}`);
         execSync(`git checkout ${prBranchName}`);
@@ -95,5 +97,6 @@ import doStuff from './do-stuff.js';
     }
   } catch (error: any) {
     ora.fail(error);
+    process.exit(1);
   }
 })();
