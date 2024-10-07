@@ -1,4 +1,4 @@
-import { execSync } from 'child_process';
+import { exec, execSync } from 'child_process';
 import Ora from 'ora';
 
 import loadConfig from './instances/config.js';
@@ -55,6 +55,8 @@ import doStuff from './do-stuff.js';
       ora.succeed(`Branch ${prBranchName} exists: ${branchExists}`);
 
       if (branchExists) {
+        execSync('git pull', { stdio: 'inherit' });
+
         ora.info(`Branch ${prBranchName} exists, checking out`);
         execSync(`git fetch origin ${prBranchName}`);
         execSync(`git checkout ${prBranchName}`);
