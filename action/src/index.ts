@@ -100,3 +100,4 @@ import doStuff from './do-stuff.js';
     process.exit(1);
   }
 })();
+
