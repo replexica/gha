@@ -26,4 +26,3 @@ jobs:
           echo "PR body: ${{ github.event.pull_request.body }}"
           echo "PR head branch: ${{ github.event.pull_request.head.branch }}"
           echo "PR base branch: ${{ github.event.pull_request.base.branch }}"
-

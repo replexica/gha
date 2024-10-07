@@ -4,7 +4,6 @@ import Ora from 'ora';
 import loadConfig from './instances/config.js';
 // Uses GitHub's official Octokit
 import loadOctokit from './instances/octokit.js';
-import doStuff from './do-stuff.js';
 
 // Run
 
@@ -22,7 +21,7 @@ import doStuff from './do-stuff.js';
 
   // Do stuff
   ora.start('Doing stuff');
-  await doStuff();
+  execSync('npx replexica@latest i18n', { stdio: 'inherit' });
   ora.succeed('Done doing stuff');
 
   if (!config.isPullRequestMode) {
