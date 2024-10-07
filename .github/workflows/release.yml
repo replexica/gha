@@ -25,4 +25,4 @@ jobs:
           pull-request: true
           pull-request-title: 'feat: pr with some data updates'
         env:
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ secrets.GH_PAT }}
