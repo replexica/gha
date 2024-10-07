@@ -4,10 +4,13 @@ import loadConfig from './instances/config.mjs';
 // Uses GitHub's official Octokit
 import loadOctokit from './instances/octokit.mjs';
 import doStuff from './do-stuff.mjs';
+import loadEnv from './instances/_env.mjs';
 
+const env = await loadEnv();
 const config = await loadConfig();
-const git = await loadGit();
 const octokit = await loadOctokit();
+
+console.log(env);
 
 // Run
 

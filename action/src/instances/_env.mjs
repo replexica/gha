@@ -4,12 +4,7 @@ export default async function loadEnv() {
   return Z.object({
     // Replexica
     REPLEXICA_API_KEY: Z.string(),
-    REPLEXICA_VERSION: Z.string().optional().default('latest'),
-    REPLEXICA_COMMIT_MESSAGE: Z.string().optional().default('feat: update translations'),
     REPLEXICA_PULL_REQUEST: Z.boolean().optional().default(false),
-    REPLEXICA_PULL_REQUEST_TITLE: Z.string().optional().default('feat: update translations'),
-    REPLEXICA_PULL_REQUEST_ASSIGNEES: Z.string().optional(),
-    REPLEXICA_PULL_REQUEST_LABELS: Z.string().optional(),
     // Github
     GITHUB_REPOSITORY: Z.string(),
     GITHUB_REPOSITORY_OWNER: Z.string(),
