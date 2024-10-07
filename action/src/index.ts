@@ -33,7 +33,7 @@ import doStuff from './do-stuff.js';
     await doStuff();
     execSync('git add .');
     execSync(`git commit -m "${config.commitMessage}"`);
-    execSync(`git push --set-upstream origin "${prBranchName}"`);
+    execSync(`git push --force --set-upstream origin "${prBranchName}"`);
 
     // Create PR
     await octokit.rest.pulls.create({
