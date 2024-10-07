@@ -27,7 +27,7 @@ import doStuff from './do-stuff.js';
     const prBranchName = `replexica/${config.currentBranchName}`;
 
     execSync(`git fetch origin ${prBranchName} && git checkout ${prBranchName} || git checkout -b ${prBranchName}`);
-    execSync(`git merge ${config.currentBranchName}`);
+    execSync(`git rebase ${config.currentBranchName} ${prBranchName}`);
 
     // Do stuff
     await doStuff();
