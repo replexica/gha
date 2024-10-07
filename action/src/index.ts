@@ -103,25 +103,25 @@ import loadOctokit from './instances/octokit.js';
 
     // Check if PR already exists
     ora.start('Checking if PR already exists');
-    let pullRequestId = await octokit.rest.pulls.list({
+    let pullRequestNumber = await octokit.rest.pulls.list({
       owner: config.repositoryOwner,
       repo: config.repositoryName,
       head: prBranchName,
       base: config.currentBranchName,
-    }).then(({ data }) => data[0]?.id);
-    ora.succeed(`PR ${pullRequestId ? 'exists' : 'does not exist'}`);
+    }).then(({ data }) => data[0]?.number);
+    ora.succeed(`PR ${pullRequestNumber ? 'exists' : 'does not exist'}`);
 
-    if (pullRequestId) {
+    if (pullRequestNumber) {
       ora.info('PR already exists. Skipping PR creation.');
     } else {
       ora.start('Creating PR');
-      pullRequestId = await octokit.rest.pulls.create({
+      pullRequestNumber = await octokit.rest.pulls.create({
         owner: config.repositoryOwner,
         repo: config.repositoryName,
         head: prBranchName,
         base: config.currentBranchName,
         title: config.pullRequestTitle,
-      }).then(({ data }) => data.id);
+      }).then(({ data }) => data.number);
       ora.succeed('PR created');
     }
 
@@ -131,13 +131,13 @@ import loadOctokit from './instances/octokit.js';
     const labelExists = await octokit.rest.issues.listLabelsOnIssue({
       owner: config.repositoryOwner,
       repo: config.repositoryName,
-      issue_number: pullRequestId,
+      issue_number: pullRequestNumber,
     }).then(({ data }) => data.some((label) => label.name === labelName));
     if (labelExists) {
       await octokit.rest.issues.removeLabel({
         owner: config.repositoryOwner,
         repo: config.repositoryName,
-        issue_number: pullRequestId,
+        issue_number: pullRequestNumber,
         name: labelName,
       });
     }
@@ -145,7 +145,7 @@ import loadOctokit from './instances/octokit.js';
     await octokit.rest.issues.addLabels({
       owner: config.repositoryOwner,
       repo: config.repositoryName,
-      issue_number: pullRequestId,
+      issue_number: pullRequestNumber,
       labels: [labelName],
     });
   }
