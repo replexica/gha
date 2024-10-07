@@ -22,28 +22,13 @@ import doStuff from './do-stuff.js';
     execSync(`git config --global safe.directory ${process.cwd()}`);
     ora.succeed('Git configured');
 
-    // Do stuff
-    ora.start('Doing stuff');
-    await doStuff();
-    ora.succeed('Done doing stuff');
-
-    // show diff
-    ora.start('Showing diff that will be committed');
-    execSync('git diff', { stdio: 'inherit' });
-    ora.succeed('Diff shown');
-
-    // Save changes in git stash
-    ora.start('Saving changes in git stash');
-    execSync('git add .');
-    execSync(`git stash`);
-    ora.succeed('Changes saved in git stash');
-
     if (!config.isPullRequestMode) {
-      ora.info('Pull request mode is not enabled, pushing changes to remote');
+      ora.info('Pull request mode is disabled');
 
-      ora.start('Popping changes from git stash');
-      execSync(`git stash apply`);
-      ora.succeed('Changes popped from git stash');
+      // Do stuff
+      ora.start('Doing stuff');
+      await doStuff();
+      ora.succeed('Done doing stuff');
 
       ora.start('Committing changes');
       execSync('git add .');
@@ -54,7 +39,7 @@ import doStuff from './do-stuff.js';
       execSync('git push');
       ora.succeed('Changes pushed to remote');
     } else {
-      ora.info('Pull request mode is enabled, creating PR');
+      ora.info('Pull request mode is enabled');
       // Calculate automated branch name
       ora.info('Calculating automated branch name');
       const prBranchName = `replexica/${config.currentBranchName}`;
@@ -74,12 +59,16 @@ import doStuff from './do-stuff.js';
         execSync(`git fetch origin ${prBranchName}`);
         execSync(`git checkout ${prBranchName}`);
         ora.succeed(`Branch ${prBranchName} checked out`);
+
+        ora.start('Merge latest changes from current branch');
+        execSync(`git merge origin/${config.currentBranchName}`);
+        ora.succeed('Merged latest changes from current branch');
       }
 
       // Do stuff
-      ora.start('Popping changes from git stash');
-      execSync(`git stash apply`, { stdio: 'inherit' });
-      ora.succeed('Changes popped from git stash');
+      ora.start('Doing stuff');
+      await doStuff();
+      ora.succeed('Done doing stuff');
 
       ora.start('Committing changes');
       execSync('git add .');
