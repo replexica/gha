@@ -22,9 +22,9 @@ import doStuff from './do-stuff.js';
     execSync(`git config --global safe.directory ${process.cwd()}`);
     ora.succeed('Git configured');
 
-    ora.start('Pulling latest changes from remote');
-    execSync('git pull', { stdio: 'inherit' });
-    ora.succeed('Pulled latest changes from remote');
+    ora.start('Fetching git repository tree structure from remote');
+    execSync('git fetch --all', { stdio: 'inherit' });
+    ora.succeed('Fetched git repository tree structure from remote');
 
     if (!config.isPullRequestMode) {
       ora.info('Pull request mode is disabled');
