@@ -78,7 +78,7 @@ import loadOctokit from './instances/octokit.js';
     // Call `replexica@latest show files` and combine the output with selective checkout using xargs
     ora.start(`Pulling files Replexica is managing from the ${config.currentBranchName} branch`);
     // Output files under Replexica's management, filter out non-existent files, and execute selective checkout using xargs
-    execSync(`npx replexica@latest show files | xargs -I {} bash -c '[ -e "{}" ] && git checkout ${config.currentBranchName} -- "{}"'`, { stdio: 'inherit' });
+    execSync(`npx replexica@latest show files | while read file; do [ -e "$file" ] && git checkout ${config.currentBranchName} -- "$file"; done`, { stdio: 'inherit' });
     ora.succeed('Files pulled');
 
     // Do stuff
