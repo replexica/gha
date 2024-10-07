@@ -11,7 +11,6 @@ const octokit = await loadOctokit();
 
 // Run
 
-console.log(process.cwd());
 // Do stuff
 await doStuff();
 // Commit changes
