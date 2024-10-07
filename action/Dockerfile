@@ -15,5 +15,7 @@ COPY src /src
 # Install pnpm and dependencies
 RUN npm install -g pnpm && pnpm install
 
+RUN ls -la
+
 # Run the Node.js application
 ENTRYPOINT ["pnpm", "start"]
