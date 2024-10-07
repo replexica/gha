@@ -7,7 +7,7 @@ RUN apk add --no-cache git
 WORKDIR /app
 
 # Copy necessary files
-COPY package*.json /app
+COPY package*.json tsconfig.json /app
 
 # Copy src directory
 COPY src /app/src
