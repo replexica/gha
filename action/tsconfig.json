@@ -8,7 +8,7 @@
     "skipLibCheck": true,
     "skipDefaultLibCheck": true,
     "moduleResolution": "Node",
-    "module": "ESNext",
+    "module": "CommonJS",
     "target": "ESNext",
     "rootDir": "src",
     "outDir": "build",
