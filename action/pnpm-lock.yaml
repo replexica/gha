@@ -14,6 +14,10 @@ importers:
       zod:
         specifier: ^3.23.8
         version: 3.23.8
+    devDependencies:
+      '@types/node':
+        specifier: ^22.7.4
+        version: 22.7.4
 
 packages:
 
@@ -127,6 +131,9 @@ packages:
   '@types/aws-lambda@8.10.145':
     resolution: {integrity: sha512-dtByW6WiFk5W5Jfgz1VM+YPA21xMXTuSFoLYIDY0L44jDLLflVPtZkYuu3/YxpGcvjzKFBZLU+GyKjR0HOYtyw==}
 
+  '@types/node@22.7.4':
+    resolution: {integrity: sha512-y+NPi1rFzDs1NdQHHToqeiX2TIS79SWEAw9GYhkkx8bD0ChpfqC+n2j5OXOCpzfojBEBt6DnEnnG9MY0zk1XLg==}
+
   before-after-hook@3.0.2:
     resolution: {integrity: sha512-Nik3Sc0ncrMK4UUdXQmAnRtzmNQTAAXmXIopizwZ1W1t8QmfJj+zL4OA2I7XPTPW5z5TDqv4hRo/JzouDJnX3A==}
 
@@ -139,6 +146,9 @@ packages:
   octokit@4.0.2:
     resolution: {integrity: sha512-wbqF4uc1YbcldtiBFfkSnquHtECEIpYD78YUXI6ri1Im5OO2NLo6ZVpRdbJpdnpZ05zMrVPssNiEo6JQtea+Qg==}
     engines: {node: '>= 18'}
+
+  undici-types@6.19.8:
+    resolution: {integrity: sha512-ve2KP6f/JnbPBFyobGHuerC9g1FYGn/F8n1LWTwNxCEzd6IfqTwUQcNXgEtmmQ6DlRrC1hrSrBnCZPokRrDHjw==}
 
   universal-github-app-jwt@2.2.0:
     resolution: {integrity: sha512-G5o6f95b5BggDGuUfKDApKaCgNYy2x7OdHY0zSMF081O0EJobw+1130VONhrA7ezGSV2FNOGyM+KQpQZAr9bIQ==}
@@ -299,6 +309,10 @@ snapshots:
 
   '@types/aws-lambda@8.10.145': {}
 
+  '@types/node@22.7.4':
+    dependencies:
+      undici-types: 6.19.8
+
   before-after-hook@3.0.2: {}
 
   bottleneck@2.19.5: {}
@@ -317,6 +331,8 @@ snapshots:
       '@octokit/plugin-throttling': 9.3.1(@octokit/core@6.1.2)
       '@octokit/request-error': 6.1.4
       '@octokit/types': 13.5.0
+
+  undici-types@6.19.8: {}
 
   universal-github-app-jwt@2.2.0: {}
 

@@ -1,4 +1,4 @@
-import loadEnv from './_env.js';
+import loadEnv from './_env';
 import { Octokit } from 'octokit';
 
 export default async function loadOctokit() {
