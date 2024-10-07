@@ -127,7 +127,7 @@ import loadOctokit from './instances/octokit.js';
     }
 
     // TODO: Run workflow again
-    const labelName = 'i18n';
+    const labelName = 'replexica/i18n';
     // Remove label if it exists
     const labelExists = await octokit.rest.issues.listLabelsOnIssue({
       owner: config.repositoryOwner,
