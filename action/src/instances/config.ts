@@ -3,8 +3,6 @@ import loadEnv from './_env.js';
 export default async function loadConfig() {
   const env = await loadEnv();
 
-  console.log(`Length of the replexica api key: ${env.REPLEXICA_API_KEY.length}`);
-
   return {
     replexicaApiKey: env.REPLEXICA_API_KEY,
     isPullRequestMode: env.REPLEXICA_PULL_REQUEST,
