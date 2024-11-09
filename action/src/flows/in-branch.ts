@@ -26,6 +26,8 @@ export class InBranchFlow extends IntegrationFlow {
       execSync('git push', { stdio: 'inherit' });
       this.ora.succeed('Changes pushed to remote');
     }
+
+    return hasChanges;
   }
 
   private async runReplexica() {
