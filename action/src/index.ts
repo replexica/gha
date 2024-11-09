@@ -66,20 +66,22 @@ import loadOctokit from './instances/octokit.js';
       ora.start(`Checking out branch ${prBranchName}`);
       execSync(`git fetch origin ${prBranchName}`, { stdio: 'inherit' });
       execSync(`git checkout ${prBranchName}`, { stdio: 'inherit' });
-      ora.succeed(`Checked out branch ${prBranchName}`);
+      ora.info(`Syncing with ${config.currentBranchName}`);
+      execSync(`git fetch origin ${config.currentBranchName}`, { stdio: 'inherit' });
+      execSync(`git merge origin/${config.currentBranchName}`, { stdio: 'inherit' });
+      ora.succeed(`Checked out and synced branch ${prBranchName}`);
     } else {
-      // If the branch does not exist, create it and set upstream for it
+      // If the branch does not exist, create it from the current branch
       ora.start(`Creating branch ${prBranchName}`);
-      execSync(`git checkout -b ${prBranchName}`, { stdio: 'inherit' });
+      execSync(`git fetch origin ${config.currentBranchName}`, { stdio: 'inherit' });
+      execSync(`git checkout -b ${prBranchName} origin/${config.currentBranchName}`, { stdio: 'inherit' });
       ora.succeed(`Created branch ${prBranchName}`);
     }
 
-    // Call `replexica@latest show files` and combine the output with selective checkout using xargs
-    ora.start(`Pulling files Replexica is managing from the ${config.currentBranchName} branch`);
-    // Check out i18n.json and i18n.lock files from the current branch, if they exist
+    // Now we can safely check out specific files and make changes
+    ora.start(`Pulling files Replexica is managing`);
     execSync(`[ -e "i18n.json" ] && git checkout ${config.currentBranchName} -- "i18n.json"`, { stdio: 'inherit' });
     execSync(`[ -e "i18n.lock" ] && git checkout ${config.currentBranchName} -- "i18n.lock"`, { stdio: 'inherit' });
-    // Output files under Replexica's management, filter out non-existent files, and execute selective checkout using xargs
     execSync(`npx replexica@latest show files | while read file; do [ -e "$file" ] && git checkout ${config.currentBranchName} -- "$file"; done`, { stdio: 'inherit' });
     ora.succeed('Files pulled');
 
