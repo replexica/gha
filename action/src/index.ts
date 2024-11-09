@@ -49,9 +49,20 @@ import loadOctokit from './instances/octokit.js';
     }
 
     ora.start('Committing changes');
-    execSync(`git add .`, { stdio: 'inherit' });
-    execSync(`git commit -m "${config.commitMessage}"`, { stdio: 'inherit' });
-    ora.succeed('Changes committed');
+    try {
+      execSync(`git add .`, { stdio: 'inherit' });
+      const hasChanges = execSync('git diff --staged --quiet || echo "has_changes"', { encoding: 'utf8' }).includes('has_changes');
+      
+      if (hasChanges) {
+        execSync(`git commit -m "${config.commitMessage}"`, { stdio: 'inherit' });
+        ora.succeed('Changes committed');
+      } else {
+        ora.info('No changes to commit');
+      }
+    } catch (error) {
+      ora.fail('Failed to commit changes');
+      throw error;
+    }
 
     ora.start('Pushing changes to remote');
     execSync('git push', { stdio: 'inherit' });
@@ -122,9 +133,20 @@ import loadOctokit from './instances/octokit.js';
     }
 
     ora.start('Committing changes');
-    execSync(`git add .`, { stdio: 'inherit' });
-    execSync(`git commit -m "${config.commitMessage}"`, { stdio: 'inherit' });
-    ora.succeed('Changes committed');
+    try {
+      execSync(`git add .`, { stdio: 'inherit' });
+      const hasChanges = execSync('git diff --staged --quiet || echo "has_changes"', { encoding: 'utf8' }).includes('has_changes');
+      
+      if (hasChanges) {
+        execSync(`git commit -m "${config.commitMessage}"`, { stdio: 'inherit' });
+        ora.succeed('Changes committed');
+      } else {
+        ora.info('No changes to commit');
+      }
+    } catch (error) {
+      ora.fail('Failed to commit changes');
+      throw error;
+    }
 
     ora.start('Pushing changes to remote');
     try {
