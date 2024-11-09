@@ -23,4 +23,4 @@ jobs:
           api-key: ${{ secrets.REPLEXICA_API_KEY }}
           pull-request: true
         env:
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ secrets.GH_PAT }}
