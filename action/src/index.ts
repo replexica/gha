@@ -10,6 +10,8 @@ import loadOctokit from './instances/octokit.js';
 (async function main() {
   const ora = Ora();
   const config = await loadConfig();
+
+  console.log(config);
   const octokit = await loadOctokit();
 
   // Configure git
