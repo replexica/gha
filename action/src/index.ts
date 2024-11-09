@@ -77,6 +77,9 @@ import loadOctokit from './instances/octokit.js';
 
     // Call `replexica@latest show files` and combine the output with selective checkout using xargs
     ora.start(`Pulling files Replexica is managing from the ${config.currentBranchName} branch`);
+    // Check out i18n.json and i18n.lock files from the current branch, if they exist
+    execSync(`[ -e "i18n.json" ] && git checkout ${config.currentBranchName} -- "i18n.json"`, { stdio: 'inherit' });
+    execSync(`[ -e "i18n.lock" ] && git checkout ${config.currentBranchName} -- "i18n.lock"`, { stdio: 'inherit' });
     // Output files under Replexica's management, filter out non-existent files, and execute selective checkout using xargs
     execSync(`npx replexica@latest show files | while read file; do [ -e "$file" ] && git checkout ${config.currentBranchName} -- "$file"; done`, { stdio: 'inherit' });
     ora.succeed('Files pulled');
