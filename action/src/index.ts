@@ -30,19 +30,18 @@ import loadOctokit from './instances/octokit.js';
     ora.succeed('Done doing stuff');
 
     // Check if there are any changes made to the files
-    const changes = execSync('git status --porcelain').toString();
+    const changes = execSync('git status --porcelain', { stdio: 'inherit' }).toString();
     if (changes.length === 0) {
       ora.info('Translations are up to date!');
       return;
     }
 
     ora.start('Committing changes');
-    execSync('git add .');
-    execSync(`git commit -m "${config.commitMessage}"`);
+    execSync(`git commit -am "${config.commitMessage}"`, { stdio: 'inherit' });
     ora.succeed('Changes committed');
 
     ora.start('Pushing changes to remote');
-    execSync('git push');
+    execSync('git push', { stdio: 'inherit' });
     ora.succeed('Changes pushed to remote');
   } else {
     ora.info('Pull request mode is enabled');
@@ -67,13 +66,13 @@ import loadOctokit from './instances/octokit.js';
     // If the branch exists, check it out
     if (branchExists) {
       ora.start(`Checking out branch ${prBranchName}`);
-      execSync(`git fetch origin ${prBranchName}`);
-      execSync(`git checkout ${prBranchName}`);
+      execSync(`git fetch origin ${prBranchName}`, { stdio: 'inherit' });
+      execSync(`git checkout ${prBranchName}`, { stdio: 'inherit' });
       ora.succeed(`Checked out branch ${prBranchName}`);
     } else {
       // If the branch does not exist, create it and set upstream for it
       ora.start(`Creating branch ${prBranchName}`);
-      execSync(`git checkout -b ${prBranchName}`);
+      execSync(`git checkout -b ${prBranchName}`, { stdio: 'inherit' });
       ora.succeed(`Created branch ${prBranchName}`);
     }
 
@@ -99,12 +98,11 @@ import loadOctokit from './instances/octokit.js';
     }
 
     ora.start('Committing changes');
-    execSync('git add .');
-    execSync(`git commit -m "${config.commitMessage}"`);
+    execSync(`git commit -am "${config.commitMessage}"`, { stdio: 'inherit' });
     ora.succeed('Changes committed');
 
     ora.start('Pushing changes to remote');
-    execSync(`git push --set-upstream origin "${prBranchName}"`);
+    execSync(`git push --set-upstream origin "${prBranchName}"`, { stdio: 'inherit' });
     ora.succeed('Changes pushed to remote');
 
     // Check if PR already exists
