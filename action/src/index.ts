@@ -94,7 +94,7 @@ import loadOctokit from './instances/octokit.js';
       ora.info(`Syncing with ${config.currentBranchName}`);
       execSync(`git fetch origin ${config.currentBranchName}`, { stdio: 'inherit' });
       // Use -X theirs to automatically resolve conflicts in favor of the other branch
-      execSync(`git merge origin/${config.currentBranchName} -X theirs`, { stdio: 'inherit' });
+      execSync(`git merge origin/${config.currentBranchName} -X theirs --allow-unrelated-histories`, { stdio: 'inherit' });
       // but use i18n.lock from our branch
       execSync(`git checkout ${prBranchName} -- i18n.lock`, { stdio: 'inherit' });
       ora.succeed(`Checked out and synced branch ${prBranchName}`);
