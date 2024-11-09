@@ -21,8 +21,6 @@ jobs:
         uses: ./
         with:
           api-key: ${{ secrets.REPLEXICA_API_KEY }}
-          commit-message: 'feat: update some data'
           pull-request: true
-          pull-request-title: 'feat: pr with some data updates'
         env:
           GH_TOKEN: ${{ secrets.GH_PAT }}
