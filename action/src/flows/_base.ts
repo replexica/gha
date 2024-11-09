@@ -4,7 +4,7 @@ import loadConfig from "../instances/config.js";
 
 export interface IIntegrationFlow {
   preRun?(): Promise<void>;
-  run(): Promise<void>;
+  run(): Promise<boolean>;
   postRun?(): Promise<void>;
 }
 
@@ -15,5 +15,5 @@ export abstract class IntegrationFlow implements IIntegrationFlow {
     protected config: Awaited<ReturnType<typeof loadConfig>>,
   ) { }
 
-  abstract run(): Promise<void>;
+  abstract run(): Promise<boolean>;
 }

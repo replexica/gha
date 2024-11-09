@@ -18,7 +18,9 @@ import { InBranchFlow } from './flows/in-branch.js';
     : new InBranchFlow(ora, octokit, config);
 
   await flow.preRun?.();
-  await flow.run();
-  await flow.postRun?.();
+  const hasChanges = await flow.run();
+  if (hasChanges) {
+    await flow.postRun?.();
+  }
 
 })();
