@@ -1,3 +1,6 @@
+# This workflow isn't supposed to do something valuable
+# it's just a workflow test that it can be triggered by a PR
+
 name: PR Update
 
 on:
@@ -25,8 +28,3 @@ jobs:
           echo "PR body: ${{ github.event.pull_request.body }}"
           echo "PR head branch: ${{ github.event.pull_request.head.branch }}"
           echo "PR base branch: ${{ github.event.pull_request.base.branch }}"
-
-      - name: Run Replexica Action
-        uses: ./
-        with:
-          api-key: ${{ secrets.REPLEXICA_API_KEY }}

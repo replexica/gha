@@ -29,22 +29,47 @@ import loadOctokit from './instances/octokit.js';
     execSync(`npx replexica@latest i18n --api-key ${config.replexicaApiKey}`, { stdio: 'inherit' });
     ora.succeed('Done doing stuff');
 
-    // Check if there are any changes made to the files
-    const changes = execSync('git status --porcelain').toString();
-    if (changes.length === 0) {
-      ora.info('Translations are up to date!');
-      return;
-    } else {
-      console.log(`Changes:\n${changes}`);
+    // Check if there's anything to commit
+    try {
+      const changes = execSync(
+        'git status --porcelain',
+        { encoding: 'utf8' }
+      ).trim();
+
+      if (!changes) {
+        ora.info('Translations are up to date!');
+        return;
+      }
+
+      ora.info(`Changes detected:\n${changes}`);
+    } catch (error) {
+      ora.fail('Failed to check git status');
+      throw error;
     }
 
     ora.start('Committing changes');
-    execSync(`git commit -am "${config.commitMessage}"`, { stdio: 'inherit' });
-    ora.succeed('Changes committed');
+    let didCommit = false;
+    try {
+      execSync(`git add .`, { stdio: 'inherit' });
+      const hasChanges = execSync('git diff --staged --quiet || echo "has_changes"', { encoding: 'utf8' }).includes('has_changes');
+      
+      if (hasChanges) {
+        execSync(`git commit -m "${config.commitMessage}"`, { stdio: 'inherit' });
+        ora.succeed('Changes committed');
+        didCommit = true;
+      } else {
+        ora.info('No changes to commit');
+      }
+    } catch (error) {
+      ora.fail('Failed to commit changes');
+      throw error;
+    }
 
-    ora.start('Pushing changes to remote');
-    execSync('git push', { stdio: 'inherit' });
-    ora.succeed('Changes pushed to remote');
+    if (didCommit) {
+      ora.start('Pushing changes to remote');
+      execSync('git push', { stdio: 'inherit' });
+      ora.succeed('Changes pushed to remote');
+    }
   } else {
     ora.info('Pull request mode is enabled');
 
@@ -68,7 +93,8 @@ import loadOctokit from './instances/octokit.js';
       execSync(`git checkout ${prBranchName}`, { stdio: 'inherit' });
       ora.info(`Syncing with ${config.currentBranchName}`);
       execSync(`git fetch origin ${config.currentBranchName}`, { stdio: 'inherit' });
-      execSync(`git merge origin/${config.currentBranchName}`, { stdio: 'inherit' });
+      // Use -X ours to automatically resolve conflicts in favor of our branch
+      execSync(`git merge origin/${config.currentBranchName} -X ours --allow-unrelated-histories`, { stdio: 'inherit' });
       ora.succeed(`Checked out and synced branch ${prBranchName}`);
     } else {
       // If the branch does not exist, create it from the current branch
@@ -79,10 +105,11 @@ import loadOctokit from './instances/octokit.js';
     }
 
     // Now we can safely check out specific files and make changes
-    ora.start(`Pulling files Replexica is managing`);
-    execSync(`[ -e "i18n.json" ] && git checkout ${config.currentBranchName} -- "i18n.json"`, { stdio: 'inherit' });
-    execSync(`[ -e "i18n.lock" ] && git checkout ${config.currentBranchName} -- "i18n.lock"`, { stdio: 'inherit' });
-    execSync(`npx replexica@latest show files | while read file; do [ -e "$file" ] && git checkout ${config.currentBranchName} -- "$file"; done`, { stdio: 'inherit' });
+    ora.start(`Pulling files from ${config.currentBranchName}`);
+    // First, pull all files from the main branch
+    execSync(`git checkout ${config.currentBranchName} -- .`, { stdio: 'inherit' });
+    // Then restore i18n.lock from our branch (effectively undoing the checkout for this file)
+    execSync(`git checkout HEAD -- i18n.lock`, { stdio: 'inherit' });
     ora.succeed('Files pulled');
 
     // Do stuff
@@ -90,20 +117,52 @@ import loadOctokit from './instances/octokit.js';
     execSync(`npx replexica@latest i18n --api-key ${config.replexicaApiKey}`, { stdio: 'inherit' });
     ora.succeed('Done doing stuff');
 
-    // Check if there are any changes made to the files
-    const changes = execSync('git status --porcelain').toString();
-    if (changes.length === 0) {
-      ora.info('Translations are up to date!');
-      return;
+    // Check if there's anything to commit
+    try {
+      const changes = execSync(
+        'git status --porcelain',
+        { encoding: 'utf8' }
+      ).trim();
+
+      if (!changes) {
+        ora.info('Translations are up to date!');
+        return;
+      }
+
+      ora.info(`Changes detected:\n${changes}`);
+    } catch (error) {
+      ora.fail('Failed to check git status');
+      throw error;
     }
 
     ora.start('Committing changes');
-    execSync(`git commit -am "${config.commitMessage}"`, { stdio: 'inherit' });
-    ora.succeed('Changes committed');
+    let didCommit = false;
+    try {
+      execSync(`git add .`, { stdio: 'inherit' });
+      const hasChanges = execSync('git diff --staged --quiet || echo "has_changes"', { encoding: 'utf8' }).includes('has_changes');
+      
+      if (hasChanges) {
+        execSync(`git commit -m "${config.commitMessage}"`, { stdio: 'inherit' });
+        ora.succeed('Changes committed');
+        didCommit = true;
+      } else {
+        ora.info('No changes to commit');
+      }
+    } catch (error) {
+      ora.fail('Failed to commit changes');
+      throw error;
+    }
 
-    ora.start('Pushing changes to remote');
-    execSync(`git push --set-upstream origin "${prBranchName}"`, { stdio: 'inherit' });
-    ora.succeed('Changes pushed to remote');
+    if (didCommit) {
+      ora.start('Pushing changes to remote');
+      try {
+        execSync(`git push --set-upstream origin "${prBranchName}"`, { stdio: 'inherit' });
+      } catch (error) {
+        ora.warn('Failed to push, attempting force push');
+        execSync(`git push --force --set-upstream origin "${prBranchName}"`, { stdio: 'inherit' });
+      }
+      ora.succeed('Changes pushed to remote');
+    }
 
     // Check if PR already exists
     ora.start('Checking if PR already exists');
