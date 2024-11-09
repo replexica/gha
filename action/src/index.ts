@@ -30,10 +30,12 @@ import loadOctokit from './instances/octokit.js';
     ora.succeed('Done doing stuff');
 
     // Check if there are any changes made to the files
-    const changes = execSync('git status --porcelain', { stdio: 'inherit' }).toString();
+    const changes = execSync('git status --porcelain').toString();
     if (changes.length === 0) {
       ora.info('Translations are up to date!');
       return;
+    } else {
+      console.log(`Changes:\n${changes}`);
     }
 
     ora.start('Committing changes');
