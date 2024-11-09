@@ -29,13 +29,23 @@ import loadOctokit from './instances/octokit.js';
     execSync(`npx replexica@latest i18n --api-key ${config.replexicaApiKey}`, { stdio: 'inherit' });
     ora.succeed('Done doing stuff');
 
-    // Check if there are any changes made to the files
-    const changes = execSync('git status --porcelain').toString();
-    if (changes.length === 0) {
-      ora.info('Translations are up to date!');
-      return;
-    } else {
-      console.log(`Changes:\n${changes}`);
+    // Check if there's anything to commit
+    try {
+      const relevantPaths = ['i18n.json', 'i18n.lock', 'locales/'].join(' ');
+      const changes = execSync(
+        `git status --porcelain -- ${relevantPaths}`,
+        { encoding: 'utf8' }
+      ).trim();
+
+      if (!changes) {
+        ora.info('Translations are up to date!');
+        return;
+      }
+
+      ora.info(`Changes detected:\n${changes}`);
+    } catch (error) {
+      ora.fail('Failed to check git status');
+      throw error;
     }
 
     ora.start('Committing changes');
