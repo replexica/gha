@@ -64,22 +64,13 @@ import loadOctokit from './instances/octokit.js';
     // If the branch exists, check it out
     if (branchExists) {
       ora.start(`Checking out branch ${prBranchName}`);
-      try {
-        execSync(`git fetch origin ${prBranchName}`, { stdio: 'inherit' });
-        execSync(`git checkout ${prBranchName}`, { stdio: 'inherit' });
-        ora.info(`Syncing with ${config.currentBranchName}`);
-        execSync(`git fetch origin ${config.currentBranchName}`, { stdio: 'inherit' });
-        execSync(`git merge origin/${config.currentBranchName} --allow-unrelated-histories`, { stdio: 'inherit' });
-        ora.succeed(`Checked out and synced branch ${prBranchName}`);
-      } catch (error) {
-        // If merge fails, we'll reset and create a fresh branch
-        ora.warn('Failed to sync existing branch, creating fresh branch instead');
-        execSync(`git reset --hard`, { stdio: 'inherit' });
-        execSync(`git checkout ${config.currentBranchName}`, { stdio: 'inherit' });
-        execSync(`git branch -D ${prBranchName}`, { stdio: 'inherit' });
-        execSync(`git checkout -b ${prBranchName}`, { stdio: 'inherit' });
-        ora.succeed(`Created fresh branch ${prBranchName}`);
-      }
+      execSync(`git fetch origin ${prBranchName}`, { stdio: 'inherit' });
+      execSync(`git checkout ${prBranchName}`, { stdio: 'inherit' });
+      ora.info(`Syncing with ${config.currentBranchName}`);
+      execSync(`git fetch origin ${config.currentBranchName}`, { stdio: 'inherit' });
+      // Use -X ours to automatically resolve conflicts in favor of our branch
+      execSync(`git merge origin/${config.currentBranchName} -X ours --allow-unrelated-histories`, { stdio: 'inherit' });
+      ora.succeed(`Checked out and synced branch ${prBranchName}`);
     } else {
       // If the branch does not exist, create it from the current branch
       ora.start(`Creating branch ${prBranchName}`);
