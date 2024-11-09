@@ -52,18 +52,14 @@ import loadOctokit from './instances/octokit.js';
     const prBranchName = `replexica/${config.currentBranchName}`;
     ora.succeed(`Automated branch name calculated: ${prBranchName}`);
 
-    // TODO: Replace rebase with branch checkout + selective files checkout
-    // To do that, we need `replexica@latest show files` to output the files that are under Replexica's management
-    // and then we can use `git add` to add them.
-
     // Check if the branch already exists
-    const branchExists = await octokit.rest.repos.getBranch({
+    const branchExistsResponse = await octokit.rest.repos.getBranch({
       owner: config.repositoryOwner,
       repo: config.repositoryName,
       branch: prBranchName,
-    })
-      .then(({ data }) => data !== null)
-      .catch(() => false);
+    });
+    console.log(branchExistsResponse);
+    const branchExists = branchExistsResponse.status === 200;
 
     // If the branch exists, check it out
     if (branchExists) {
