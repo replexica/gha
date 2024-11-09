@@ -31,9 +31,8 @@ import loadOctokit from './instances/octokit.js';
 
     // Check if there's anything to commit
     try {
-      const relevantPaths = ['i18n.json', 'i18n.lock', 'locales/'].join(' ');
       const changes = execSync(
-        `git status --porcelain -- ${relevantPaths}`,
+        'git status --porcelain',
         { encoding: 'utf8' }
       ).trim();
 
@@ -106,10 +105,11 @@ import loadOctokit from './instances/octokit.js';
     }
 
     // Now we can safely check out specific files and make changes
-    ora.start(`Pulling files Replexica is managing`);
-    execSync(`[ -e "i18n.json" ] && git checkout ${config.currentBranchName} -- "i18n.json"`, { stdio: 'inherit' });
-    execSync(`[ -e "i18n.lock" ] && git checkout ${config.currentBranchName} -- "i18n.lock"`, { stdio: 'inherit' });
-    execSync(`npx replexica@latest show files | while read file; do [ -e "$file" ] && git checkout ${config.currentBranchName} -- "$file"; done`, { stdio: 'inherit' });
+    ora.start(`Pulling files from ${config.currentBranchName}`);
+    // First, pull all files from the main branch
+    execSync(`git checkout ${config.currentBranchName} -- .`, { stdio: 'inherit' });
+    // Then restore i18n.lock from our branch (effectively undoing the checkout for this file)
+    execSync(`git checkout HEAD -- i18n.lock`, { stdio: 'inherit' });
     ora.succeed('Files pulled');
 
     // Do stuff
@@ -119,9 +119,8 @@ import loadOctokit from './instances/octokit.js';
 
     // Check if there's anything to commit
     try {
-      const relevantPaths = ['i18n.json', 'i18n.lock', 'locales/'].join(' ');
       const changes = execSync(
-        `git status --porcelain -- ${relevantPaths}`,
+        'git status --porcelain',
         { encoding: 'utf8' }
       ).trim();
 
