@@ -59,7 +59,7 @@ import loadOctokit from './instances/octokit.js';
       branch: prBranchName,
     })
       .then((r) => r.data)
-      .catch((r) => false);
+      .catch((r) => r.status === 404 ? false : Promise.reject(r));
 
     // If the branch exists, check it out
     if (branchExists) {
