@@ -53,13 +53,13 @@ import loadOctokit from './instances/octokit.js';
     ora.succeed(`Automated branch name calculated: ${prBranchName}`);
 
     // Check if the branch already exists
-    const branchExistsResponse = await octokit.rest.repos.getBranch({
+    const branchExists = await octokit.rest.repos.getBranch({
       owner: config.repositoryOwner,
       repo: config.repositoryName,
       branch: prBranchName,
-    });
-    console.log(branchExistsResponse);
-    const branchExists = branchExistsResponse.status === 200;
+    })
+      .then((r) => r.data)
+      .catch((r) => false);
 
     // If the branch exists, check it out
     if (branchExists) {
