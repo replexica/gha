@@ -49,7 +49,8 @@ import loadOctokit from './instances/octokit.js';
     }
 
     ora.start('Committing changes');
-    execSync(`git commit -am "${config.commitMessage}"`, { stdio: 'inherit' });
+    execSync(`git add .`, { stdio: 'inherit' });
+    execSync(`git commit -m "${config.commitMessage}"`, { stdio: 'inherit' });
     ora.succeed('Changes committed');
 
     ora.start('Pushing changes to remote');
@@ -121,7 +122,8 @@ import loadOctokit from './instances/octokit.js';
     }
 
     ora.start('Committing changes');
-    execSync(`git commit -am "${config.commitMessage}"`, { stdio: 'inherit' });
+    execSync(`git add .`, { stdio: 'inherit' });
+    execSync(`git commit -m "${config.commitMessage}"`, { stdio: 'inherit' });
     ora.succeed('Changes committed');
 
     ora.start('Pushing changes to remote');
