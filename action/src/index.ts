@@ -49,6 +49,7 @@ import loadOctokit from './instances/octokit.js';
     }
 
     ora.start('Committing changes');
+    let didCommit = false;
     try {
       execSync(`git add .`, { stdio: 'inherit' });
       const hasChanges = execSync('git diff --staged --quiet || echo "has_changes"', { encoding: 'utf8' }).includes('has_changes');
@@ -56,6 +57,7 @@ import loadOctokit from './instances/octokit.js';
       if (hasChanges) {
         execSync(`git commit -m "${config.commitMessage}"`, { stdio: 'inherit' });
         ora.succeed('Changes committed');
+        didCommit = true;
       } else {
         ora.info('No changes to commit');
       }
@@ -64,9 +66,11 @@ import loadOctokit from './instances/octokit.js';
       throw error;
     }
 
-    ora.start('Pushing changes to remote');
-    execSync('git push', { stdio: 'inherit' });
-    ora.succeed('Changes pushed to remote');
+    if (didCommit) {
+      ora.start('Pushing changes to remote');
+      execSync('git push', { stdio: 'inherit' });
+      ora.succeed('Changes pushed to remote');
+    }
   } else {
     ora.info('Pull request mode is enabled');
 
@@ -133,6 +137,7 @@ import loadOctokit from './instances/octokit.js';
     }
 
     ora.start('Committing changes');
+    let didCommit = false;
     try {
       execSync(`git add .`, { stdio: 'inherit' });
       const hasChanges = execSync('git diff --staged --quiet || echo "has_changes"', { encoding: 'utf8' }).includes('has_changes');
@@ -140,6 +145,7 @@ import loadOctokit from './instances/octokit.js';
       if (hasChanges) {
         execSync(`git commit -m "${config.commitMessage}"`, { stdio: 'inherit' });
         ora.succeed('Changes committed');
+        didCommit = true;
       } else {
         ora.info('No changes to commit');
       }
@@ -148,14 +154,16 @@ import loadOctokit from './instances/octokit.js';
       throw error;
     }
 
-    ora.start('Pushing changes to remote');
-    try {
-      execSync(`git push --set-upstream origin "${prBranchName}"`, { stdio: 'inherit' });
-    } catch (error) {
-      ora.warn('Failed to push, attempting force push');
-      execSync(`git push --force --set-upstream origin "${prBranchName}"`, { stdio: 'inherit' });
+    if (didCommit) {
+      ora.start('Pushing changes to remote');
+      try {
+        execSync(`git push --set-upstream origin "${prBranchName}"`, { stdio: 'inherit' });
+      } catch (error) {
+        ora.warn('Failed to push, attempting force push');
+        execSync(`git push --force --set-upstream origin "${prBranchName}"`, { stdio: 'inherit' });
+      }
+      ora.succeed('Changes pushed to remote');
     }
-    ora.succeed('Changes pushed to remote');
 
     // Check if PR already exists
     ora.start('Checking if PR already exists');
