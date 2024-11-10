@@ -66,7 +66,7 @@ export class PullRequestFlow extends InBranchFlow {
     }).then(({ data }) => data[0]);
 
     if (existingPr) {
-      // Close existing PR
+      // Close existing PR first
       await this.octokit.rest.pulls.update({
         owner: this.config.repositoryOwner,
         repo: this.config.repositoryName,
@@ -76,13 +76,26 @@ export class PullRequestFlow extends InBranchFlow {
     }
 
     // Create new PR
-    return await this.octokit.rest.pulls.create({
+    const newPr = await this.octokit.rest.pulls.create({
       owner: this.config.repositoryOwner,
       repo: this.config.repositoryName,
       head: this.i18nBranchName!,
       base: this.config.currentBranchName,
       title: this.config.pullRequestTitle,
-    }).then(({ data }) => data.number);
+      body: this.getPrBodyContent(),
+    });
+
+    if (existingPr) {
+      // Post comment about outdated PR
+      await this.octokit.rest.issues.createComment({
+        owner: this.config.repositoryOwner,
+        repo: this.config.repositoryName,
+        issue_number: existingPr.number,
+        body: `This PR is now outdated. A new version has been created at #${newPr.data.number}`
+      });
+    }
+
+    return newPr;
   }
 
   private checkoutI18nBranch(i18nBranchName: string) {
@@ -122,5 +135,21 @@ export class PullRequestFlow extends InBranchFlow {
     }
 
     execSync('git commit -m "Merge branch with preserved Replexica files"', { stdio: 'inherit' });
+  }
+
+  private getPrBodyContent(): string {
+    return `
+Hey team, [**Replexica AI**](https://replexica.com) here with fresh translations!
+
+### What's New?
+
+- Added missing translations
+- Improved localization coverage
+
+### Next Steps
+
+- [ ] Review the changes
+- [ ] Merge when ready
+    `.trim();
   }
 }
