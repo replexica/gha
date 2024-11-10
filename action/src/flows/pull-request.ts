@@ -139,7 +139,7 @@ export class PullRequestFlow extends InBranchFlow {
 
   private getPrBodyContent(): string {
     return `
-Hey ${this.config.repositoryOwner} team,
+Hey @${this.config.repositoryOwner} team,
 
 [**Replexica AI**](https://replexica.com) here with fresh localization updates!
 
