@@ -66,23 +66,23 @@ export class PullRequestFlow extends InBranchFlow {
     }).then(({ data }) => data[0]);
 
     if (existingPr) {
-      // Update existing PR
-      return await this.octokit.rest.pulls.update({
+      // Close existing PR
+      await this.octokit.rest.pulls.update({
         owner: this.config.repositoryOwner,
         repo: this.config.repositoryName,
         pull_number: existingPr.number,
-        title: this.config.pullRequestTitle,
-      }).then(({ data }) => data.number);
-    } else {
-      // Create new PR
-      return await this.octokit.rest.pulls.create({
-        owner: this.config.repositoryOwner,
-        repo: this.config.repositoryName,
-        head: this.i18nBranchName!,
-        base: this.config.currentBranchName,
-        title: this.config.pullRequestTitle,
-      }).then(({ data }) => data.number);
+        state: 'closed'
+      });
     }
+
+    // Create new PR
+    return await this.octokit.rest.pulls.create({
+      owner: this.config.repositoryOwner,
+      repo: this.config.repositoryName,
+      head: this.i18nBranchName!,
+      base: this.config.currentBranchName,
+      title: this.config.pullRequestTitle,
+    }).then(({ data }) => data.number);
   }
 
   private checkoutI18nBranch(i18nBranchName: string) {
