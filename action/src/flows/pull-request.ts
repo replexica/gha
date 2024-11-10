@@ -82,6 +82,7 @@ export class PullRequestFlow extends InBranchFlow {
       head: this.i18nBranchName!,
       base: this.config.baseBranchName,
       title: this.config.pullRequestTitle,
+      body: this.getPrBodyContent(),
     });
 
     if (existingPr) {
@@ -94,7 +95,7 @@ export class PullRequestFlow extends InBranchFlow {
       });
     }
 
-    return newPr;
+    return newPr.data.number;
   }
 
   private checkoutI18nBranch(i18nBranchName: string) {
