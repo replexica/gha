@@ -60,7 +60,7 @@ export class PullRequestFlow extends InBranchFlow {
     const existingPr = await this.octokit.rest.pulls.list({
       owner: this.config.repositoryOwner,
       repo: this.config.repositoryName,
-      head: i18nBranchName,
+      head: `${this.config.repositoryOwner}:${i18nBranchName}`,
       base: this.config.currentBranchName,
       state: 'open',
     }).then(({ data }) => data[0]);
@@ -79,7 +79,7 @@ export class PullRequestFlow extends InBranchFlow {
     const newPr = await this.octokit.rest.pulls.create({
       owner: this.config.repositoryOwner,
       repo: this.config.repositoryName,
-      head: this.i18nBranchName!,
+      head: `${this.config.repositoryOwner}:${this.i18nBranchName!}`,
       base: this.config.currentBranchName,
       title: this.config.pullRequestTitle,
       body: this.getPrBodyContent(),
