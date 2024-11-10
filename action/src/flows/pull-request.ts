@@ -20,7 +20,7 @@ export class PullRequestFlow extends InBranchFlow {
       this.checkoutI18nBranch(this.i18nBranchName);
       this.ora.succeed(`Checked out branch ${this.i18nBranchName}`);
 
-      this.ora.start(`Syncing with ${this.config.currentBranchName}`);
+      this.ora.start(`Syncing with ${this.config.baseBranchName}`);
       this.syncI18nBranch();
       this.ora.succeed(`Checked out and synced branch ${this.i18nBranchName}`);
     } else {
@@ -40,7 +40,7 @@ export class PullRequestFlow extends InBranchFlow {
 
 
   private calculatePrBranchName(): string {
-    return `replexica/${this.config.currentBranchName}`;
+    return `replexica/${this.config.baseBranchName}`;
   }
 
   private async checkBranchExistance(prBranchName: string) {
@@ -61,7 +61,7 @@ export class PullRequestFlow extends InBranchFlow {
       owner: this.config.repositoryOwner,
       repo: this.config.repositoryName,
       head: i18nBranchName,
-      base: this.config.currentBranchName,
+      base: this.config.baseBranchName,
       state: 'open',
     }).then(({ data }) => data[0]);
 
@@ -80,7 +80,7 @@ export class PullRequestFlow extends InBranchFlow {
       owner: this.config.repositoryOwner,
       repo: this.config.repositoryName,
       head: this.i18nBranchName!,
-      base: this.config.currentBranchName,
+      base: this.config.baseBranchName,
       title: this.config.pullRequestTitle,
     });
 
@@ -103,12 +103,12 @@ export class PullRequestFlow extends InBranchFlow {
   }
 
   private createI18nBranch(i18nBranchName: string) {
-    execSync(`git fetch origin ${this.config.currentBranchName}`, { stdio: 'inherit' });
-    execSync(`git checkout -b ${i18nBranchName} origin/${this.config.currentBranchName}`, { stdio: 'inherit' });
+    execSync(`git fetch origin ${this.config.baseBranchName}`, { stdio: 'inherit' });
+    execSync(`git checkout -b ${i18nBranchName} origin/${this.config.baseBranchName}`, { stdio: 'inherit' });
   }
 
   private syncI18nBranch() {
-    execSync(`git fetch origin ${this.config.currentBranchName}`, { stdio: 'inherit' });
+    execSync(`git fetch origin ${this.config.baseBranchName}`, { stdio: 'inherit' });
 
     // Get list of files to preserve
     const filesToPreserve = ['i18n.lock'];
@@ -122,7 +122,7 @@ export class PullRequestFlow extends InBranchFlow {
     }
 
     // Merge but don't commit yet
-    execSync(`git merge -X theirs --no-commit origin/${this.config.currentBranchName} --allow-unrelated-histories`, { stdio: 'inherit' });
+    execSync(`git merge -X theirs --no-commit origin/${this.config.baseBranchName} --allow-unrelated-histories`, { stdio: 'inherit' });
 
     // Restore all files that need to be preserved
     for (const file of filesToPreserve) {
