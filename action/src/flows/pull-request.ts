@@ -34,7 +34,8 @@ export class PullRequestFlow extends InBranchFlow {
     if (!this.i18nBranchName) { throw new Error('i18nBranchName is not set. Did you forget to call preRun?'); }
 
     this.ora.start('Checking if PR already exists');
-    const pullRequestNumber = await this.createPrIfNotExists(this.i18nBranchName);
+    const pullRequestNumber = await this.createPrIfNotExists(this.i18nBranchName, true);
+    await this.createLabelIfNotExists(pullRequestNumber, 'replexica/i18n', false);
     this.ora.succeed(`Pull request ready: https://github.com/${this.config.repositoryOwner}/${this.config.repositoryName}/pull/${pullRequestNumber}`);
   }
 
@@ -55,7 +56,7 @@ export class PullRequestFlow extends InBranchFlow {
     return result;
   }
 
-  private async createPrIfNotExists(i18nBranchName: string) {
+  private async createPrIfNotExists(i18nBranchName: string, recreate: boolean) {
     // Check if PR exists
     const existingPr = await this.octokit.rest.pulls.list({
       owner: this.config.repositoryOwner,
@@ -66,6 +67,10 @@ export class PullRequestFlow extends InBranchFlow {
     }).then(({ data }) => data[0]);
 
     if (existingPr) {
+      if (!recreate) {
+        return existingPr.number;
+      }
+      
       // Close existing PR first
       await this.octokit.rest.pulls.update({
         owner: this.config.repositoryOwner,
@@ -96,6 +101,37 @@ export class PullRequestFlow extends InBranchFlow {
     }
 
     return newPr.data.number;
+  }
+
+  private async createLabelIfNotExists(pullRequestNumber: number, labelName: string, recreate: boolean) {
+    // Check if label exists
+    const existingLabel = await this.octokit.rest.issues.listLabelsOnIssue({
+      owner: this.config.repositoryOwner,
+      repo: this.config.repositoryName,
+      issue_number: pullRequestNumber,
+    }).then(({ data }) => data.find(label => label.name === labelName));
+
+    if (existingLabel) {
+      if (!recreate) {
+        return;
+      }
+      
+      // Remove existing label first
+      await this.octokit.rest.issues.removeLabel({
+        owner: this.config.repositoryOwner,
+        repo: this.config.repositoryName,
+        issue_number: pullRequestNumber,
+        name: labelName
+      });
+    }
+
+    // Add new label
+    await this.octokit.rest.issues.addLabels({
+      owner: this.config.repositoryOwner,
+      repo: this.config.repositoryName,
+      issue_number: pullRequestNumber,
+      labels: [labelName]
+    });
   }
 
   private checkoutI18nBranch(i18nBranchName: string) {
