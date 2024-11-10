@@ -21,6 +21,6 @@ jobs:
         uses: ./
         with:
           api-key: ${{ secrets.REPLEXICA_API_KEY }}
-          pull-request: false
+          pull-request: true
         env:
           GH_TOKEN: ${{ secrets.GH_PAT_TOKEN }}
