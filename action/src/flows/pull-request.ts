@@ -151,35 +151,31 @@ export class PullRequestFlow extends InBranchFlow {
 
     execSync(`git fetch origin ${this.config.baseBranchName}`, { stdio: 'inherit' });
 
-    // Get list of files to preserve
-    const filesToPreserve = ['i18n.lock'];
+    // Get list of source files to sync
+    const filesToSync = ['i18n.json'];  // Base translation file
     try {
-      const replexicaFiles = execSync('npx replexica@latest show files --target', { encoding: 'utf8' })
+      const sourceFiles = execSync('npx replexica@latest show files --source', { encoding: 'utf8' })
         .split('\n')
         .filter(Boolean);
-      filesToPreserve.push(...replexicaFiles);
+      filesToSync.push(...sourceFiles);
     } catch (error) {
-      this.ora.warn('Could not get Replexica target files list, preserving only i18n.lock');
+      this.ora.warn('Could not get Replexica source files list, syncing only i18n.json');
     }
 
-    // Reset to base branch state while on i18n branch
-    execSync(`git reset --hard origin/${this.config.baseBranchName}`, { stdio: 'inherit' });
-
-    // Restore our translation files from the previous state
-    for (const file of filesToPreserve) {
+    // Sync only translation source files from base branch
+    for (const file of filesToSync) {
       try {
-        execSync(`git checkout @{1} -- "${file}"`, { stdio: 'inherit' });
+        execSync(`git checkout origin/${this.config.baseBranchName} -- "${file}"`, { stdio: 'inherit' });
         execSync(`git add "${file}"`, { stdio: 'inherit' });
       } catch (error) {
-        this.ora.warn(`Could not preserve ${file} (might not exist)`);
+        this.ora.warn(`Could not sync ${file} (might not exist in base branch)`);
       }
     }
 
     // Create commit only if there are changes
     const hasChanges = execSync('git diff --staged --quiet || echo "has_changes"', { encoding: 'utf8' }).includes('has_changes');
     if (hasChanges) {
-      execSync('git commit -m "chore: sync branch with preserved @replexica files"', { stdio: 'inherit' });
-      execSync('git push -f origin HEAD', { stdio: 'inherit' });
+      execSync('git commit -m "chore: sync @replexica from base branch"', { stdio: 'inherit' });
     }
   }
 
