@@ -152,8 +152,8 @@ export class PullRequestFlow extends InBranchFlow {
     execSync(`git fetch origin ${this.config.baseBranchName}`, { stdio: 'inherit' });
 
     // Get list of files
-    const sourceFiles: string[] = ['i18n.json'];
-    const generatedFiles: string[] = ['i18n.lock'];
+    const sourceFiles = ['i18n.json'];
+    const generatedFiles = new Set(['i18n.lock']);
 
     try {
       // Source files (sync from main)
@@ -166,15 +166,15 @@ export class PullRequestFlow extends InBranchFlow {
       const replexicaTargetFiles = execSync('npx replexica@latest show files --target', { encoding: 'utf8' })
         .split('\n')
         .filter(Boolean);
-      generatedFiles.push(...replexicaTargetFiles);
+      replexicaTargetFiles.forEach(f => generatedFiles.add(f));
     } catch (error) {
       this.ora.warn('Could not get Replexica files list, syncing only i18n.json');
     }
 
-    // Reset to main's state (handles deletions)
-    execSync(`git reset --hard origin/${this.config.baseBranchName}`, { stdio: 'inherit' });
+    // Merge from main branch with "theirs" strategy to get their version of everything
+    execSync(`git merge origin/${this.config.baseBranchName} -X theirs --no-commit`, { stdio: 'inherit' });
 
-    // Restore our generated files from previous state
+    // Restore our generated files from pre-merge state
     for (const file of generatedFiles) {
       try {
         execSync(`git checkout @{1} -- "${file}"`, { stdio: 'inherit' });
@@ -184,26 +184,10 @@ export class PullRequestFlow extends InBranchFlow {
       }
     }
 
-    // Merge only generated files from main
-    try {
-      // Only merge the specific files we care about
-      execSync(`git merge origin/${this.config.baseBranchName} -X ours --no-commit`, { stdio: 'inherit' });
-      
-      // Only stage our generated files
-      for (const file of generatedFiles) {
-        execSync(`git add "${file}"`, { stdio: 'inherit' });
-      }
-
-      // Clean up any other changes from the merge
-      execSync('git reset --hard', { stdio: 'inherit' });
-    } catch (error) {
-      this.ora.warn('Could not merge updates from main branch');
-    }
-
     // Create commit if there are changes
     const hasChanges = execSync('git diff --staged --quiet || echo "has_changes"', { encoding: 'utf8' }).includes('has_changes');
     if (hasChanges) {
-      execSync(`git commit -m "chore: sync @replexica from ${this.config.baseBranchName}"`, { stdio: 'inherit' });
+      execSync('git commit -m "chore: sync translations from base branch"', { stdio: 'inherit' });
     }
   }
 
