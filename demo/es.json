@@ -1,4 +1,5 @@
 {
   "hello": "¡Ey, ¿qué tal?",
-  "welcome": "¡Bienvenido a Replexica!"
+  "welcome": "¡Bienvenido a Replexica!",
+  "counter": "Contador: {count}"
 }
