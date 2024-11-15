@@ -35,7 +35,7 @@ export class PullRequestFlow extends InBranchFlow {
 
     this.ora.start('Checking if PR already exists');
     const pullRequestNumber = await this.createPrIfNotExists(this.i18nBranchName, true);
-    await this.createLabelIfNotExists(pullRequestNumber, 'replexica/i18n', false);
+    // await this.createLabelIfNotExists(pullRequestNumber, 'replexica/i18n', false);
     this.ora.succeed(`Pull request ready: https://github.com/${this.config.repositoryOwner}/${this.config.repositoryName}/pull/${pullRequestNumber}`);
   }
 
@@ -61,7 +61,7 @@ export class PullRequestFlow extends InBranchFlow {
     const existingPr = await this.octokit.rest.pulls.list({
       owner: this.config.repositoryOwner,
       repo: this.config.repositoryName,
-      head: i18nBranchName,
+      head: `${this.config.repositoryOwner}:${i18nBranchName}`,
       base: this.config.baseBranchName,
       state: 'open',
     }).then(({ data }) => data[0]);
@@ -84,7 +84,7 @@ export class PullRequestFlow extends InBranchFlow {
     const newPr = await this.octokit.rest.pulls.create({
       owner: this.config.repositoryOwner,
       repo: this.config.repositoryName,
-      head: this.i18nBranchName!,
+      head: i18nBranchName,
       base: this.config.baseBranchName,
       title: this.config.pullRequestTitle,
       body: this.getPrBodyContent(),
@@ -145,6 +145,10 @@ export class PullRequestFlow extends InBranchFlow {
   }
 
   private syncI18nBranch() {
+    if (!this.i18nBranchName) {
+      throw new Error('i18nBranchName is not set');
+    }
+
     execSync(`git fetch origin ${this.config.baseBranchName}`, { stdio: 'inherit' });
 
     // Get list of files to preserve
@@ -152,30 +156,35 @@ export class PullRequestFlow extends InBranchFlow {
     try {
       const replexicaFiles = execSync('npx replexica@latest show files --target', { encoding: 'utf8' })
         .split('\n')
-        .filter(Boolean); // Remove empty lines
+        .filter(Boolean);
       filesToPreserve.push(...replexicaFiles);
     } catch (error) {
       this.ora.warn('Could not get Replexica target files list, preserving only i18n.lock');
     }
 
-    // Merge but don't commit yet
-    execSync(`git merge -X theirs --no-commit origin/${this.config.baseBranchName} --allow-unrelated-histories`, { stdio: 'inherit' });
+    // Reset to base branch state while on i18n branch
+    execSync(`git reset --hard origin/${this.config.baseBranchName}`, { stdio: 'inherit' });
 
-    // Restore all files that need to be preserved
+    // Restore our translation files from the previous state
     for (const file of filesToPreserve) {
       try {
-        execSync(`git checkout HEAD -- "${file}"`, { stdio: 'inherit' });
+        execSync(`git checkout @{1} -- "${file}"`, { stdio: 'inherit' });
+        execSync(`git add "${file}"`, { stdio: 'inherit' });
       } catch (error) {
         this.ora.warn(`Could not preserve ${file} (might not exist)`);
       }
     }
 
-    execSync('git commit -m "Merge branch with preserved Replexica files"', { stdio: 'inherit' });
+    // Create commit only if there are changes
+    const hasChanges = execSync('git diff --staged --quiet || echo "has_changes"', { encoding: 'utf8' }).includes('has_changes');
+    if (hasChanges) {
+      execSync('git commit -m "chore: sync branch with preserved @replexica files"', { stdio: 'inherit' });
+    }
   }
 
   private getPrBodyContent(): string {
     return `
-Hi team,
+Hey team,
 
 [**Replexica AI**](https://replexica.com) here with fresh localization updates!
 
