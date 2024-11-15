@@ -179,6 +179,7 @@ export class PullRequestFlow extends InBranchFlow {
     const hasChanges = execSync('git diff --staged --quiet || echo "has_changes"', { encoding: 'utf8' }).includes('has_changes');
     if (hasChanges) {
       execSync('git commit -m "chore: sync branch with preserved @replexica files"', { stdio: 'inherit' });
+      execSync('git push -f origin HEAD', { stdio: 'inherit' });
     }
   }
 

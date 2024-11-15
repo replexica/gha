@@ -23,7 +23,7 @@ export class InBranchFlow extends IntegrationFlow {
       this.ora.succeed('Changes committed');
 
       this.ora.start('Pushing changes to remote');
-      execSync(`git push origin --all`, { stdio: 'inherit' });
+      execSync(`git push -f origin HEAD`, { stdio: 'inherit' });
       this.ora.succeed('Changes pushed to remote');
     }
 
