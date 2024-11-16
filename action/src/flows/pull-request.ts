@@ -195,7 +195,7 @@ export class PullRequestFlow extends InBranchFlow {
     }
     // Create a merge commit with custom message, to force git into thinking
     // we just merged the base branch into the current i18n branch
-    execSync(`git commit --amend -m "chore: merge ${this.config.baseBranchName} into ${this.i18nBranchName}"`, { stdio: 'inherit' });
+    execSync(`git commit -m "chore: merge ${this.config.baseBranchName} into ${this.i18nBranchName}"`, { stdio: 'inherit' });
   }
 
   private getPrBodyContent(): string {
