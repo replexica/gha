@@ -172,7 +172,7 @@ export class PullRequestFlow extends InBranchFlow {
     }
 
     // Merge from main branch with "theirs" strategy to get their version of everything
-    execSync(`git merge origin/${this.config.baseBranchName} -X theirs --no-commit`, { stdio: 'inherit' });
+    execSync(`git merge origin/${this.config.baseBranchName} -X theirs --no-commit --allow-unrelated-histories`, { stdio: 'inherit' });
 
     // Restore our generated files from pre-merge state
     for (const file of generatedFiles) {
