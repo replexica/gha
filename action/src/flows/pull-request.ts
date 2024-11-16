@@ -188,7 +188,7 @@ export class PullRequestFlow extends InBranchFlow {
     }
 
     // Attempt to merge base branch, preferring base branch changes in case of conflicts
-    execSync(`git merge ${this.config.baseBranchName} --allow-unrelated-histories -X theirs --no-commit`, { stdio: 'inherit' });
+    execSync(`git merge ${this.config.baseBranchName} --allow-unrelated-histories -X ours --no-commit`, { stdio: 'inherit' });
     // Rollback changes in target files
     for (const file of targetFiles) {
       execSync(`git checkout -- "${file}"`, { stdio: 'inherit' });
