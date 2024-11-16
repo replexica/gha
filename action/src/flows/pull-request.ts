@@ -182,7 +182,7 @@ export class PullRequestFlow extends InBranchFlow {
       // Show status
       execSync('git status', { stdio: 'inherit' });
       // Attempt to merge base branch, preferring our changes in case of conflicts
-      execSync(`git merge ${this.config.baseBranchName} -X ours`, { stdio: 'inherit' });
+      execSync(`git merge ${this.config.baseBranchName} -X ours --allow-unrelated-histories`, { stdio: 'inherit' });
       // Show status
       execSync('git status', { stdio: 'inherit' });
 
