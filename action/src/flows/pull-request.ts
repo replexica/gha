@@ -156,10 +156,10 @@ export class PullRequestFlow extends InBranchFlow {
 
     try {
       // Get target files (preserve our version)
-      const replexicaTargetFiles = execSync('npx replexica@latest show files --source', { encoding: 'utf8' })
+      const replexicaSourceFiles = execSync('npx replexica@latest show files --source', { encoding: 'utf8' })
         .split('\n')
         .filter(Boolean);
-      sourceFiles.push(...sourceFiles);
+      sourceFiles.push(...replexicaSourceFiles);
     } catch (error) {
       this.ora.warn('Could not get Replexica files list');
     }
@@ -175,13 +175,17 @@ export class PullRequestFlow extends InBranchFlow {
 
     const hasChanges = execSync('git status --porcelain', { encoding: 'utf8' }).trim().length > 0;
     if (hasChanges) {
-      execSync('git commit -m "chore: sync @replexica from ${this.config.baseBranchName}"', { stdio: 'inherit' });
+      execSync(`git commit -m "chore: sync @replexica from ${this.config.baseBranchName}"`, { stdio: 'inherit' });
     }
 
     try {
+      // Show status
+      execSync('git status', { stdio: 'inherit' });
       // Attempt to merge base branch, preferring our changes in case of conflicts
       execSync(`git merge ${this.config.baseBranchName} -X ours`, { stdio: 'inherit' });
-      
+      // Show status
+      execSync('git status', { stdio: 'inherit' });
+
       // Create a merge commit with custom message
       execSync(`git commit --amend -m "chore: merge ${this.config.baseBranchName} into ${this.i18nBranchName}"`, { stdio: 'inherit' });
     } catch (error) {
