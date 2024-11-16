@@ -151,6 +151,26 @@ export class PullRequestFlow extends InBranchFlow {
 
     execSync(`git fetch origin ${this.config.baseBranchName}`, { stdio: 'inherit' });
 
+    // First, get the list of files that exist in base branch
+    const baseFiles = execSync(`git ls-tree -r --name-only origin/${this.config.baseBranchName}`, { encoding: 'utf8' })
+      .split('\n')
+      .filter(Boolean);
+
+    // Get list of current files
+    const currentFiles = execSync('git ls-tree -r --name-only HEAD', { encoding: 'utf8' })
+      .split('\n')
+      .filter(Boolean);
+
+    // Remove files that don't exist in base branch
+    const filesToRemove = currentFiles.filter(file => !baseFiles.includes(file));
+    for (const file of filesToRemove) {
+      try {
+        execSync(`git rm "${file}"`, { stdio: 'inherit' });
+      } catch (error) {
+        this.ora.warn(`Could not remove ${file}`);
+      }
+    }
+
     // Get list of source files
     const sourceFiles: string[] = ['i18n.json'];
     try {
@@ -187,14 +207,13 @@ export class PullRequestFlow extends InBranchFlow {
       execSync(`git commit -m "chore: sync @replexica from ${this.config.baseBranchName}"`, { stdio: 'inherit' });
     }
 
-    // Attempt to merge base branch, preferring base branch changes in case of conflicts
     execSync(`git merge ${this.config.baseBranchName} -s recursive -X theirs --allow-unrelated-histories --no-commit`, { stdio: 'inherit' });
+    
     // Rollback changes in target files
     for (const file of targetFiles) {
       execSync(`git checkout -- "${file}"`, { stdio: 'inherit' });
     }
-    // Create a merge commit with custom message, to force git into thinking
-    // we just merged the base branch into the current i18n branch
+    
     execSync(`git commit -m "chore: merge ${this.config.baseBranchName} into ${this.i18nBranchName}"`, { stdio: 'inherit' });
   }
 
