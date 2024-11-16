@@ -167,10 +167,10 @@ export class PullRequestFlow extends InBranchFlow {
     // Get files from base branch (handles deletions properly)
     execSync(`git checkout origin/${this.config.baseBranchName} -- .`, { stdio: 'inherit' });
 
-    // Restore our generated files
+    // Make sure generated files versions are those from the i18n branch
     for (const file of generatedFiles) {
       try {
-        execSync(`git checkout - -- "${file}"`, { stdio: 'inherit' });
+        execSync(`git checkout HEAD -- "${file}"`, { stdio: 'inherit' });
         execSync(`git add "${file}"`, { stdio: 'inherit' });
       } catch (error) {
         this.ora.warn(`Could not restore ${file} (might not exist)`);
