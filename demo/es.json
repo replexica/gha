@@ -1,5 +1,5 @@
 {
-  "hello": "Something completely different",
-  "welcome": "¡Bienvenido a Replexica!",
+  "hello": "¡Hola mundo!",
+  "welcome": "¡Bienvenido a Replexica! Comencemos.",
   "counter": "Contador: {count}"
 }
