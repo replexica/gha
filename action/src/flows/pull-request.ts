@@ -152,36 +152,49 @@ export class PullRequestFlow extends InBranchFlow {
     execSync(`git fetch origin ${this.config.baseBranchName}`, { stdio: 'inherit' });
 
     // Get list of files
-    const generatedFiles = ['i18n.lock'];
+    const sourceFiles: string[] = ['i18n.json'];
 
     try {
       // Get target files (preserve our version)
-      const replexicaTargetFiles = execSync('npx replexica@latest show files --target', { encoding: 'utf8' })
+      const replexicaTargetFiles = execSync('npx replexica@latest show files --source', { encoding: 'utf8' })
         .split('\n')
         .filter(Boolean);
-      generatedFiles.push(...replexicaTargetFiles);
+      sourceFiles.push(...sourceFiles);
     } catch (error) {
       this.ora.warn('Could not get Replexica files list');
     }
 
-    // Get files from base branch (handles deletions properly)
-    execSync(`git checkout origin/${this.config.baseBranchName} -- .`, { stdio: 'inherit' });
-
-    // Make sure generated files versions are those from the i18n branch
-    for (const file of generatedFiles) {
+    for (const file of sourceFiles) {
       try {
-        execSync(`git checkout HEAD -- "${file}"`, { stdio: 'inherit' });
-        execSync(`git add "${file}"`, { stdio: 'inherit' });
+        // Get files from base branch
+        execSync(`git checkout ${this.config.baseBranchName} -- "${file}"`, { stdio: 'inherit' });
       } catch (error) {
         this.ora.warn(`Could not restore ${file} (might not exist)`);
       }
     }
 
-    // Create merge commit
-    const baseRev = execSync(`git rev-parse origin/${this.config.baseBranchName}`, { encoding: 'utf8' }).trim();
-    const tree = execSync('git write-tree', { encoding: 'utf8' }).trim();
-    const commit = execSync(`git commit-tree ${tree} -p HEAD -p ${baseRev} -m "chore: sync @replexica from ${this.config.baseBranchName}"`, { encoding: 'utf8' }).trim();
-    execSync(`git reset --hard ${commit}`, { stdio: 'inherit' });
+    const hasChanges = execSync('git status --porcelain', { encoding: 'utf8' }).trim().length > 0;
+    if (hasChanges) {
+      execSync('git commit -m "chore: sync @replexica from ${this.config.baseBranchName}"', { stdio: 'inherit' });
+    }
+
+    try {
+      // Attempt to merge base branch, preferring our changes in case of conflicts
+      execSync(`git merge origin/${this.config.baseBranchName} --no-edit -X ours`, { stdio: 'inherit' });
+      
+      // Create a merge commit with custom message
+      execSync(`git commit --amend -m "chore: merge ${this.config.baseBranchName} into ${this.i18nBranchName}"`, { stdio: 'inherit' });
+    } catch (error) {
+      // If there's nothing to merge, this is fine
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      if (errorMessage.includes('Already up to date')) {
+        this.ora.info(`Branch ${this.i18nBranchName} is already up to date with ${this.config.baseBranchName}`);
+        return;
+      }
+      
+      // If there's a real error, throw it
+      throw error;
+    }
   }
 
   private getPrBodyContent(): string {
