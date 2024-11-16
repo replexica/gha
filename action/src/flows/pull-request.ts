@@ -180,7 +180,7 @@ export class PullRequestFlow extends InBranchFlow {
 
     try {
       // Attempt to merge base branch, preferring our changes in case of conflicts
-      execSync(`git merge origin/${this.config.baseBranchName} --no-edit -X ours`, { stdio: 'inherit' });
+      execSync(`git merge ${this.config.baseBranchName} -X ours`, { stdio: 'inherit' });
       
       // Create a merge commit with custom message
       execSync(`git commit --amend -m "chore: merge ${this.config.baseBranchName} into ${this.i18nBranchName}"`, { stdio: 'inherit' });
