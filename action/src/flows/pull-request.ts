@@ -152,43 +152,36 @@ export class PullRequestFlow extends InBranchFlow {
     execSync(`git fetch origin ${this.config.baseBranchName}`, { stdio: 'inherit' });
 
     // Get list of files
-    const sourceFiles = ['i18n.json'];
-    const generatedFiles = new Set(['i18n.lock']);
+    const generatedFiles = ['i18n.lock'];
 
     try {
-      // Source files (sync from main)
-      const replexicaSourceFiles = execSync('npx replexica@latest show files --source', { encoding: 'utf8' })
-        .split('\n')
-        .filter(Boolean);
-      sourceFiles.push(...replexicaSourceFiles);
-
-      // Target files (preserve our version)
+      // Get target files (preserve our version)
       const replexicaTargetFiles = execSync('npx replexica@latest show files --target', { encoding: 'utf8' })
         .split('\n')
         .filter(Boolean);
-      replexicaTargetFiles.forEach(f => generatedFiles.add(f));
+      generatedFiles.push(...replexicaTargetFiles);
     } catch (error) {
-      this.ora.warn('Could not get Replexica files list, syncing only i18n.json');
+      this.ora.warn('Could not get Replexica files list');
     }
 
-    // Merge from main branch with "theirs" strategy to get their version of everything
-    execSync(`git merge origin/${this.config.baseBranchName} -X theirs --no-commit --allow-unrelated-histories`, { stdio: 'inherit' });
+    // Get files from base branch (handles deletions properly)
+    execSync(`git checkout origin/${this.config.baseBranchName} -- .`, { stdio: 'inherit' });
 
-    // Restore our generated files from pre-merge state
+    // Restore our generated files
     for (const file of generatedFiles) {
       try {
-        execSync(`git reset --hard HEAD -- "${file}"`, { stdio: 'inherit' });
+        execSync(`git checkout - -- "${file}"`, { stdio: 'inherit' });
         execSync(`git add "${file}"`, { stdio: 'inherit' });
       } catch (error) {
         this.ora.warn(`Could not restore ${file} (might not exist)`);
       }
     }
 
-    // Create commit if there are changes
-    const hasChanges = execSync('git diff --staged --quiet || echo "has_changes"', { encoding: 'utf8' }).includes('has_changes');
-    if (hasChanges) {
-      execSync(`git commit -m "chore: sync @replexica from ${this.config.baseBranchName}"`, { stdio: 'inherit' });
-    }
+    // Create merge commit
+    const baseRev = execSync(`git rev-parse origin/${this.config.baseBranchName}`, { encoding: 'utf8' }).trim();
+    const tree = execSync('git write-tree', { encoding: 'utf8' }).trim();
+    const commit = execSync(`git commit-tree ${tree} -p HEAD -p ${baseRev} -m "chore: sync @replexica from ${this.config.baseBranchName}"`, { encoding: 'utf8' }).trim();
+    execSync(`git reset --hard ${commit}`, { stdio: 'inherit' });
   }
 
   private getPrBodyContent(): string {
