@@ -151,15 +151,24 @@ export class PullRequestFlow extends InBranchFlow {
 
     execSync(`git fetch origin ${this.config.baseBranchName}`, { stdio: 'inherit' });
 
-    // Get list of files
+    // Get list of source files
     const sourceFiles: string[] = ['i18n.json'];
-
     try {
-      // Get target files (preserve our version)
       const replexicaSourceFiles = execSync('npx replexica@latest show files --source', { encoding: 'utf8' })
         .split('\n')
         .filter(Boolean);
       sourceFiles.push(...replexicaSourceFiles);
+    } catch (error) {
+      this.ora.warn('Could not get Replexica files list');
+    }
+
+    // Get list of target files
+    const targetFiles = ['i18n.lock'];
+    try {
+      const replexicaTargetFiles = execSync('npx replexica@latest show files --target', { encoding: 'utf8' })
+        .split('\n')
+        .filter(Boolean);
+      targetFiles.push(...replexicaTargetFiles);
     } catch (error) {
       this.ora.warn('Could not get Replexica files list');
     }
@@ -178,27 +187,15 @@ export class PullRequestFlow extends InBranchFlow {
       execSync(`git commit -m "chore: sync @replexica from ${this.config.baseBranchName}"`, { stdio: 'inherit' });
     }
 
-    try {
-      // Show status
-      execSync('git status', { stdio: 'inherit' });
-      // Attempt to merge base branch, preferring our changes in case of conflicts
-      execSync(`git merge ${this.config.baseBranchName} -X ours --allow-unrelated-histories`, { stdio: 'inherit' });
-      // Show status
-      execSync('git status', { stdio: 'inherit' });
-
-      // Create a merge commit with custom message
-      execSync(`git commit --amend -m "chore: merge ${this.config.baseBranchName} into ${this.i18nBranchName}"`, { stdio: 'inherit' });
-    } catch (error) {
-      // If there's nothing to merge, this is fine
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      if (errorMessage.includes('Already up to date')) {
-        this.ora.info(`Branch ${this.i18nBranchName} is already up to date with ${this.config.baseBranchName}`);
-        return;
-      }
-      
-      // If there's a real error, throw it
-      throw error;
+    // Attempt to merge base branch, preferring base branch changes in case of conflicts
+    execSync(`git merge ${this.config.baseBranchName} --allow-unrelated-histories -X theirs --no-commit`, { stdio: 'inherit' });
+    // Rollback changes in target files
+    for (const file of targetFiles) {
+      execSync(`git checkout -- "${file}"`, { stdio: 'inherit' });
     }
+    // Create a merge commit with custom message, to force git into thinking
+    // we just merged the base branch into the current i18n branch
+    execSync(`git commit --amend -m "chore: merge ${this.config.baseBranchName} into ${this.i18nBranchName}"`, { stdio: 'inherit' });
   }
 
   private getPrBodyContent(): string {
