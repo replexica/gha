@@ -177,7 +177,7 @@ export class PullRequestFlow extends InBranchFlow {
     // Restore our generated files from pre-merge state
     for (const file of generatedFiles) {
       try {
-        execSync(`git checkout @{1} -- "${file}"`, { stdio: 'inherit' });
+        execSync(`git reset --hard HEAD -- "${file}"`, { stdio: 'inherit' });
         execSync(`git add "${file}"`, { stdio: 'inherit' });
       } catch (error) {
         this.ora.warn(`Could not restore ${file} (might not exist)`);
@@ -187,7 +187,7 @@ export class PullRequestFlow extends InBranchFlow {
     // Create commit if there are changes
     const hasChanges = execSync('git diff --staged --quiet || echo "has_changes"', { encoding: 'utf8' }).includes('has_changes');
     if (hasChanges) {
-      execSync('git commit -m "chore: sync translations from base branch"', { stdio: 'inherit' });
+      execSync(`git commit -m "chore: sync @replexica from ${this.config.baseBranchName}"`, { stdio: 'inherit' });
     }
   }
 
