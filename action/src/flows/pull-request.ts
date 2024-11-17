@@ -7,7 +7,7 @@ export class PullRequestFlow extends InBranchFlow {
   async preRun() {
     await super.preRun?.();
 
-    this.ora.start('Calculating automated branch name');
+    this.ora.start('Calculating automated branch name.');
     this.i18nBranchName = this.calculatePrBranchName();
     this.ora.succeed(`Automated branch name calculated: ${this.i18nBranchName}`);
 
