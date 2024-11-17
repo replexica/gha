@@ -10,10 +10,16 @@ const engine = new ReplexicaEngine({
 
 const text = 'HELLO';
 
-const result = await engine.localizeText(text, {
-  sourceLocale: 'en',
-  targetLocale: 'es',
-});
+const localizedTexts = await engine.batchLocalizeText(
+  'Hello, world!',
+  { 
+    sourceLocale: 'en',
+    targetLocales: ['es', 'fr', 'de'],
+    fast: true // optional
+  }
+);
+// Returns an array of translations in the requested order:
+// ['¡Hola Mundo!', 'Bonjour le monde!', 'Hallo Welt!']
 
-console.log(result);
+console.log(localizedTexts);
 

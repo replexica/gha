@@ -140,6 +140,17 @@ export class PullRequestFlow extends InBranchFlow {
       this.ora.start(`Resetting to ${this.config.baseBranchName}`);
       execSync(`git reset --hard origin/${this.config.baseBranchName}`, { stdio: 'inherit' });
       this.ora.succeed(`Reset to ${this.config.baseBranchName}`);
+
+      this.ora.start('Restoring target files');
+      const targetFiles = ['i18n.lock'];
+      const targetFileNames = execSync(`npx replexica@latest show files --target ${this.config.baseBranchName}`, { encoding: 'utf8' }).split('\n').filter(Boolean);
+      targetFiles.push(...targetFileNames);
+      execSync(`git fetch origin ${this.i18nBranchName}`, { stdio: 'inherit' });
+      for (const file of targetFiles) {
+        // bring all files to the i18n branch'es state
+        execSync(`git checkout FETCH_HEAD -- ${file}`, { stdio: 'inherit' });
+      }
+      this.ora.succeed('Restored target files');
     }
 
     this.ora.start('Checking for changes to commit');
