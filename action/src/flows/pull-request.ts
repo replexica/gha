@@ -34,7 +34,7 @@ export class PullRequestFlow extends InBranchFlow {
     if (!this.i18nBranchName) { throw new Error('i18nBranchName is not set. Did you forget to call preRun?'); }
 
     this.ora.start('Checking if PR already exists');
-    const pullRequestNumber = await this.createPrIfNotExists(this.i18nBranchName, true);
+    const pullRequestNumber = await this.ensureFreshPr(this.i18nBranchName);
     // await this.createLabelIfNotExists(pullRequestNumber, 'replexica/i18n', false);
     this.ora.succeed(`Pull request ready: https://github.com/${this.config.repositoryOwner}/${this.config.repositoryName}/pull/${pullRequestNumber}`);
   }
@@ -56,7 +56,7 @@ export class PullRequestFlow extends InBranchFlow {
     return result;
   }
 
-  private async createPrIfNotExists(i18nBranchName: string, recreate: boolean) {
+  private async ensureFreshPr(i18nBranchName: string) {
     // Check if PR exists
     const existingPr = await this.octokit.rest.pulls.list({
       owner: this.config.repositoryOwner,
@@ -66,11 +66,7 @@ export class PullRequestFlow extends InBranchFlow {
       state: 'open',
     }).then(({ data }) => data[0]);
 
-    if (existingPr) {
-      if (!recreate) {
-        return existingPr.number;
-      }
-      
+    if (existingPr) {      
       // Close existing PR first
       await this.octokit.rest.pulls.update({
         owner: this.config.repositoryOwner,
@@ -149,72 +145,17 @@ export class PullRequestFlow extends InBranchFlow {
       throw new Error('i18nBranchName is not set');
     }
 
+    // Fetch latest changes from base branch
     execSync(`git fetch origin ${this.config.baseBranchName}`, { stdio: 'inherit' });
+    
+    // Rebase on base branch, taking their changes in case of conflicts
+    execSync(`git rebase origin/${this.config.baseBranchName} --strategy-option=theirs`, { stdio: 'inherit' });
 
-    // First, get the list of files that exist in base branch
-    const baseFiles = execSync(`git ls-tree -r --name-only origin/${this.config.baseBranchName}`, { encoding: 'utf8' })
-      .split('\n')
-      .filter(Boolean);
-
-    // Get list of current files
-    const currentFiles = execSync('git ls-tree -r --name-only HEAD', { encoding: 'utf8' })
-      .split('\n')
-      .filter(Boolean);
-
-    // Remove files that don't exist in base branch
-    const filesToRemove = currentFiles.filter(file => !baseFiles.includes(file));
-    for (const file of filesToRemove) {
-      try {
-        execSync(`git rm "${file}"`, { stdio: 'inherit' });
-      } catch (error) {
-        this.ora.warn(`Could not remove ${file}`);
-      }
-    }
-
-    // Get list of source files
-    const sourceFiles: string[] = ['i18n.json'];
-    try {
-      const replexicaSourceFiles = execSync('npx replexica@latest show files --source', { encoding: 'utf8' })
-        .split('\n')
-        .filter(Boolean);
-      sourceFiles.push(...replexicaSourceFiles);
-    } catch (error) {
-      this.ora.warn('Could not get Replexica files list');
-    }
-
-    // Get list of target files
-    const targetFiles = ['i18n.lock'];
-    try {
-      const replexicaTargetFiles = execSync('npx replexica@latest show files --target', { encoding: 'utf8' })
-        .split('\n')
-        .filter(Boolean);
-      targetFiles.push(...replexicaTargetFiles);
-    } catch (error) {
-      this.ora.warn('Could not get Replexica files list');
-    }
-
-    for (const file of sourceFiles) {
-      try {
-        // Get files from base branch
-        execSync(`git checkout ${this.config.baseBranchName} -- "${file}"`, { stdio: 'inherit' });
-      } catch (error) {
-        this.ora.warn(`Could not restore ${file} (might not exist)`);
-      }
-    }
-
-    const hasChanges = execSync('git status --porcelain', { encoding: 'utf8' }).trim().length > 0;
+    // Check if there are any changes to commit
+    const hasChanges = this.checkCommitableChanges();
     if (hasChanges) {
-      execSync(`git commit -m "chore: sync @replexica from ${this.config.baseBranchName}"`, { stdio: 'inherit' });
+      execSync(`git commit -am "chore: sync with ${this.config.baseBranchName}"`, { stdio: 'inherit' });
     }
-
-    execSync(`git merge ${this.config.baseBranchName} -s recursive -X theirs --allow-unrelated-histories --no-commit`, { stdio: 'inherit' });
-    
-    // Rollback changes in target files
-    for (const file of targetFiles) {
-      execSync(`git checkout -- "${file}"`, { stdio: 'inherit' });
-    }
-    
-    execSync(`git commit -m "chore: merge ${this.config.baseBranchName} into ${this.i18nBranchName}"`, { stdio: 'inherit' });
   }
 
   private getPrBodyContent(): string {
@@ -235,4 +176,3 @@ Hey team,
     `.trim();
   }
 }
-
