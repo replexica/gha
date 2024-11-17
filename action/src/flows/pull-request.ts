@@ -58,6 +58,7 @@ export class PullRequestFlow extends InBranchFlow {
 
   private async ensureFreshPr(i18nBranchName: string) {
     // Check if PR exists
+    this.ora.start(`Checking for existing PR with head ${i18nBranchName} and base ${this.config.baseBranchName}`);
     const existingPr = await this.octokit.rest.pulls.list({
       owner: this.config.repositoryOwner,
       repo: this.config.repositoryName,
@@ -65,18 +66,22 @@ export class PullRequestFlow extends InBranchFlow {
       base: this.config.baseBranchName,
       state: 'open',
     }).then(({ data }) => data[0]);
+    this.ora.succeed(existingPr ? 'PR found' : 'No PR found');
 
     if (existingPr) {      
       // Close existing PR first
+      this.ora.start(`Closing existing PR ${existingPr.number}`);
       await this.octokit.rest.pulls.update({
         owner: this.config.repositoryOwner,
         repo: this.config.repositoryName,
         pull_number: existingPr.number,
         state: 'closed'
       });
+      this.ora.succeed(`Closed existing PR ${existingPr.number}`);
     }
 
     // Create new PR
+    this.ora.start(`Creating new PR`);
     const newPr = await this.octokit.rest.pulls.create({
       owner: this.config.repositoryOwner,
       repo: this.config.repositoryName,
@@ -85,49 +90,21 @@ export class PullRequestFlow extends InBranchFlow {
       title: this.config.pullRequestTitle,
       body: this.getPrBodyContent(),
     });
+    this.ora.succeed(`Created new PR ${newPr.data.number}`);
 
     if (existingPr) {
       // Post comment about outdated PR
+      this.ora.start(`Posting comment about outdated PR ${existingPr.number}`);
       await this.octokit.rest.issues.createComment({
         owner: this.config.repositoryOwner,
         repo: this.config.repositoryName,
         issue_number: existingPr.number,
         body: `This PR is now outdated. A new version has been created at #${newPr.data.number}`
       });
+      this.ora.succeed(`Posted comment about outdated PR ${existingPr.number}`);
     }
 
     return newPr.data.number;
-  }
-
-  private async createLabelIfNotExists(pullRequestNumber: number, labelName: string, recreate: boolean) {
-    // Check if label exists
-    const existingLabel = await this.octokit.rest.issues.listLabelsOnIssue({
-      owner: this.config.repositoryOwner,
-      repo: this.config.repositoryName,
-      issue_number: pullRequestNumber,
-    }).then(({ data }) => data.find(label => label.name === labelName));
-
-    if (existingLabel) {
-      if (!recreate) {
-        return;
-      }
-      
-      // Remove existing label first
-      await this.octokit.rest.issues.removeLabel({
-        owner: this.config.repositoryOwner,
-        repo: this.config.repositoryName,
-        issue_number: pullRequestNumber,
-        name: labelName
-      });
-    }
-
-    // Add new label
-    await this.octokit.rest.issues.addLabels({
-      owner: this.config.repositoryOwner,
-      repo: this.config.repositoryName,
-      issue_number: pullRequestNumber,
-      labels: [labelName]
-    });
   }
 
   private checkoutI18nBranch(i18nBranchName: string) {
@@ -145,16 +122,34 @@ export class PullRequestFlow extends InBranchFlow {
       throw new Error('i18nBranchName is not set');
     }
 
-    // Fetch latest changes from base branch
+    this.ora.start(`Fetching latest changes from ${this.config.baseBranchName}`);
     execSync(`git fetch origin ${this.config.baseBranchName}`, { stdio: 'inherit' });
+    this.ora.succeed(`Fetched latest changes from ${this.config.baseBranchName}`);
     
-    // Rebase on base branch, taking their changes in case of conflicts
-    execSync(`git rebase origin/${this.config.baseBranchName} --strategy-option=theirs`, { stdio: 'inherit' });
+    try {
+      this.ora.start('Attempting to rebase branch');
+      execSync(`git rebase origin/${this.config.baseBranchName}`, { stdio: 'inherit' });
+      this.ora.succeed('Successfully rebased branch');
+    } catch (error) {
+      this.ora.warn('Rebase failed, falling back to alternative sync method');
+      
+      this.ora.start('Aborting failed rebase');
+      execSync('git rebase --abort', { stdio: 'inherit' });
+      this.ora.succeed('Aborted failed rebase');
+      
+      this.ora.start(`Resetting to ${this.config.baseBranchName}`);
+      execSync(`git reset --hard origin/${this.config.baseBranchName}`, { stdio: 'inherit' });
+      this.ora.succeed(`Reset to ${this.config.baseBranchName}`);
+    }
 
-    // Check if there are any changes to commit
+    this.ora.start('Checking for changes to commit');
     const hasChanges = this.checkCommitableChanges();
     if (hasChanges) {
-      execSync(`git commit -am "chore: sync with ${this.config.baseBranchName}"`, { stdio: 'inherit' });
+      execSync('git add .', { stdio: 'inherit' });
+      execSync(`git commit -m "chore: sync with ${this.config.baseBranchName}"`, { stdio: 'inherit' });
+      this.ora.succeed('Committed additional changes');
+    } else {
+      this.ora.succeed('No changes to commit');
     }
   }
 
