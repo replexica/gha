@@ -147,8 +147,14 @@ export class PullRequestFlow extends InBranchFlow {
       targetFiles.push(...targetFileNames);
       execSync(`git fetch origin ${this.i18nBranchName}`, { stdio: 'inherit' });
       for (const file of targetFiles) {
-        // bring all files to the i18n branch'es state
-        execSync(`git checkout FETCH_HEAD -- ${file}`, { stdio: 'inherit' });
+        try {
+          // bring all files to the i18n branch's state
+          execSync(`git checkout FETCH_HEAD -- ${file}`, { stdio: 'inherit' });
+        } catch (error) {
+          // If file doesn't exist in FETCH_HEAD, that's okay - just skip it
+          this.ora.warn(`Skipping non-existent file: ${file}`);
+          continue;
+        }
       }
       this.ora.succeed('Restored target files');
     }
