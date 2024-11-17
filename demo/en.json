@@ -3,5 +3,6 @@
   "welcome": "Welcome to Replexica! Let's go, shall we?",
   "new": "New project",
   "new-feature": "This is a new feature!",
-  "counter": "Counter: {count}"
+  "counter": "Counter: {count}",
+  "click": "Click me!"
 }
