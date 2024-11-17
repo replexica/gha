@@ -1,0 +1,17 @@
+{
+  "name": "gha",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@replexica/sdk": "^0.6.0",
+    "dotenv": "^16.4.5"
+  }
+}
