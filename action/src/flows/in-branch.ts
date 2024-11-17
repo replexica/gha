@@ -46,3 +46,4 @@ export class InBranchFlow extends IntegrationFlow {
     execSync(`git config --global safe.directory ${process.cwd()}`);
   }
 }
+
