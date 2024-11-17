@@ -4,5 +4,6 @@
   "new": "Nuevo proyecto",
   "new-feature": "¡Esta es una nueva función!",
   "counter": "Contador: {count}",
-  "click": "¡Hazme clic!"
+  "click": "¡Hazme clic!",
+  "clicks": "Clics: {count}"
 }
