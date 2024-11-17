@@ -3,5 +3,6 @@
   "welcome": "¡Bienvenido a Replexica! ¿Empezamos?",
   "new": "Nuevo proyecto",
   "new-feature": "¡Esta es una nueva función!",
-  "counter": "Contador: {count}"
+  "counter": "Contador: {count}",
+  "click": "¡Hazme clic!"
 }
