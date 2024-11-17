@@ -1,6 +1,7 @@
 {
   "hello": "¡Hola mundo! Esto es una prueba.",
   "welcome": "¡Bienvenido a Replexica! ¿Empezamos?",
+  "new": "Nuevo proyecto",
   "new-feature": "¡Esta es una nueva función!",
   "counter": "Contador: {count}"
 }
