@@ -16,3 +16,4 @@ const result = await engine.localizeText(text, {
 });
 
 console.log(result);
+
